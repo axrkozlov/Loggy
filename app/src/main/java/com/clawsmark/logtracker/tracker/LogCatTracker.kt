@@ -1,6 +1,6 @@
 package com.clawsmark.logtracker.tracker
 
-class LogCatTracker {
+object LogCatTracker {
 
 
 }

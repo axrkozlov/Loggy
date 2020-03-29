@@ -1,49 +1,46 @@
 package com.clawsmark.logtracker.tracker
 
-import com.clawsmark.logtracker.courier.Courier
-import com.clawsmark.logtracker.data.Message
-import com.clawsmark.logtracker.data.MessageBuffer
-import com.clawsmark.logtracker.dispatcher.Event
-import com.clawsmark.logtracker.dispatcher.TrackerDispatcher
-import com.clawsmark.logtracker.filemanager.FileManager
+import com.clawsmark.logtracker.data.Level
+import com.clawsmark.logtracker.data.TrackMessage
+import com.clawsmark.logtracker.data.TrackBuffer
+import com.clawsmark.logtracker.locator.LogTrackerServiceLocator
 
 object Tracker {
-//
-//    var typingCallback : ((Double) -> Unit)?=null
-//
-//    private val bufferSaveDelegate: ((LinkedHashSet<Message>) -> Unit) by TrackerDispatcher
-    init {
-        TrackerDispatcher
-        FileManager
-    Courier
+
+    private val logDao = LogTrackerServiceLocator.LOG_FILE_DAO
+    private val trackerPrefs = LogTrackerServiceLocator.trackerPrefs
+
+    private val buffer = TrackBuffer()
+
+    fun log(tag: String, message: String, level: Level){
+        addMessage(TrackMessage(tag,message,level))
     }
-
-    init {
-
-    }
-
-    private val buffer = MessageBuffer()
 
     fun i(tag: String, message: String) {
-
+        addMessage(TrackMessage(tag,message,Level.INFO))
     }
 
     fun w(tag: String, message: String) {
-
+        addMessage(TrackMessage(tag,message,Level.WARNING))
     }
 
     fun e(tag: String, message: String) {
+        addMessage(TrackMessage(tag,message,Level.ERROR))
+    }
+
+    private fun addMessage(trackMessage: TrackMessage){
+        checkBufferSize()
+        buffer.add(trackMessage)
+    }
+
+    private fun checkBufferSize() {
 
     }
 
     fun saveBuffer(){
-//        bufferSaveDelegate.invoke(buffer)
-        TrackerDispatcher.dispatch(Event.BufferSaveEvent(buffer))
+        logDao.saveBuffer(buffer)
     }
 
-    fun saveBuffer1() {
-        TrackerDispatcher.dispatch(Event.Simple())
-    }
 
 
 }
