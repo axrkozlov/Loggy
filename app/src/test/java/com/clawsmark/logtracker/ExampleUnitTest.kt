@@ -1,4 +1,4 @@
-package com.slateus.multiplefileupload
+package com.clawsmark.logtracker
 
 import org.junit.Assert
 import org.junit.Test

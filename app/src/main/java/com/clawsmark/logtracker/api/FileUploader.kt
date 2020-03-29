@@ -1,4 +1,4 @@
-package com.slateus.multiplefileupload.API
+package com.clawsmark.logtracker.api
 
 import android.content.ContentValues
 import android.os.Handler

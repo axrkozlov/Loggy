@@ -1,4 +1,4 @@
-package com.slateus.multiplefileupload.API
+package com.clawsmark.logtracker.api
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
