@@ -1,4 +1,3 @@
 package com.clawsmark.logtracker.data
 
-class LogcatBuffer:LinkedHashSet<String>() {
-}
+class LogcatBuffer:Buffer<String>()

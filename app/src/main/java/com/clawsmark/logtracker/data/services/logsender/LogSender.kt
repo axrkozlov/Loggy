@@ -1,6 +1,6 @@
 package com.clawsmark.logtracker.data.services.logsender
 
-import com.clawsmark.logtracker.data.services.logmanager.LogFileDao
+import com.clawsmark.logtracker.data.services.logfilemanager.LogFileDao
 import com.clawsmark.logtracker.locator.LogTrackerServiceLocator
 
 object LogSender{
