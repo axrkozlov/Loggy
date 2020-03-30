@@ -1,15 +1,10 @@
 package com.clawsmark.logtracker.data.services.logfilemanager
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.*
-import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.coroutines.CoroutineContext
 
-class LogFileList(private val dir: File, private val maxSizeKb: Int) : CopyOnWriteArrayList<File>() {
+class LogFileList(private val dir: File, private val maxSizeKb: Int) : ArrayList<File>() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
@@ -21,7 +16,6 @@ class LogFileList(private val dir: File, private val maxSizeKb: Int) : CopyOnWri
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
         update()
     }
 
@@ -37,24 +31,21 @@ class LogFileList(private val dir: File, private val maxSizeKb: Int) : CopyOnWri
     }
 
 
-    suspend fun deleteFileFromDir(file: File) {
-        coroutineScope.launch {
-            file.delete()
-            if (!file.exists()) this@LogFileList.remove(file)
-            else throw Exception("File ${file.name} was not deleted from directory $dir")
+    suspend fun deleteFileFromDir(file: File) = coroutineScope {
+        file.delete()
+        if (!file.exists()) this@LogFileList.remove(file)
+        else throw Exception("File ${file.name} was not deleted from directory $dir")
+
+    }
+
+    suspend fun deleteFileFromDir(fileName: String) = coroutineScope {
+        this@LogFileList.forEach {
+            if (it.name == fileName) deleteFileFromDir(it)
         }
     }
 
-    fun deleteFileFromDir(fileName: String) {
-        coroutineScope.launch {
-            this@LogFileList.forEach {
-                if (it.name == fileName) deleteFileFromDir(it)
-            }
-        }
-    }
-
-    private fun cropToSize() {
-        coroutineScope.launch {
+    private suspend fun cropToSize() {
+        coroutineScope {
             if (sizeInKb > maxSizeKb && size > 0) {
                 try {
                     deleteFileFromDir(this@LogFileList[0])
@@ -66,9 +57,9 @@ class LogFileList(private val dir: File, private val maxSizeKb: Int) : CopyOnWri
         }
     }
 
-    private fun measure() {
+    private suspend fun measure() {
         var sizeInB = 0L
-        this.forEach {
+        this@LogFileList.forEach {
             sizeInB += it.length()
         }
         sizeInKb = sizeInB / 1024

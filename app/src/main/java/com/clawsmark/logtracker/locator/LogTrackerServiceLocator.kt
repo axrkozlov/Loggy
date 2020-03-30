@@ -7,7 +7,7 @@ import com.clawsmark.logtracker.data.services.prefs.TrackerPrefsDao
 
 object LogTrackerServiceLocator {
 
-    val LOG_FILE_DAO : LogFileDao = LogFileManager
+    val LogFileDao : LogFileDao = LogFileManager
     val trackerPrefs : TrackerPrefsDao = TrackerPrefs
 
 }

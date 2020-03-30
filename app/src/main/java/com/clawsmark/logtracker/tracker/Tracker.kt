@@ -3,14 +3,15 @@ package com.clawsmark.logtracker.tracker
 import com.clawsmark.logtracker.data.Level
 import com.clawsmark.logtracker.data.TrackerMessage
 import com.clawsmark.logtracker.data.TrackerBuffer
+import com.clawsmark.logtracker.data.services.logsender.LogSender
 import com.clawsmark.logtracker.locator.LogTrackerServiceLocator
 
 object Tracker {
 
-    private val logDao = LogTrackerServiceLocator.LOG_FILE_DAO
+    private val logDao = LogTrackerServiceLocator.LogFileDao
     private val trackerPrefs = LogTrackerServiceLocator.trackerPrefs
 
-    private val buffer = TrackerBuffer()
+    private var buffer = TrackerBuffer()
 
     fun log(tag: String, message: String, level: Level){
         addMessage(TrackerMessage(tag,message,level))
@@ -39,6 +40,7 @@ object Tracker {
 
     fun saveBuffer(){
         logDao.saveBuffer(buffer)
+        buffer=TrackerBuffer()
     }
 
 

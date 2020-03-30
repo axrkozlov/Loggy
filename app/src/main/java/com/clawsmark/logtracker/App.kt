@@ -9,9 +9,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         trace(tag, "onCreate")
-        for (i in 1..100) {
-            trace(tag, "message $i")
-        }
-        Tracker.saveBuffer()
+
     }
 }

@@ -15,6 +15,9 @@ import android.util.Log
 import android.view.View
 import com.clawsmark.logtracker.api.FileUploader
 import com.clawsmark.logtracker.api.FileUploader.FileUploaderCallback
+import com.clawsmark.logtracker.data.services.logsender.LogSender
+import com.clawsmark.logtracker.tracker.Tracker
+import com.clawsmark.logtracker.utils.trace
 import java.io.File
 import java.util.*
 
@@ -30,17 +33,23 @@ class MainActivity : AppCompatActivity() {
             pDialog!!.dismiss() //dismiss dialog
         }
         findViewById<View>(R.id.btnSelectFiles).setOnClickListener {
-            if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                        2)
-            } else {
-                val intent = Intent()
-                intent.type = "image/*"
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                intent.action = Intent.ACTION_GET_CONTENT
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1)
+            for (i in 1..100) {
+                trace("MainActivity", "message $i")
             }
+            Tracker.saveBuffer()
+            LogSender.markFileAsSent("")
+
+//            if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                    != PackageManager.PERMISSION_GRANTED) {
+//                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+//                        2)
+//            } else {
+//                val intent = Intent()
+//                intent.type = "image/*"
+//                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+//                intent.action = Intent.ACTION_GET_CONTENT
+//                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1)
+//            }
         }
     }
 

@@ -16,7 +16,12 @@ fun traceError(tag: String, message: String){
     Tracker.e(tag,message)
 }
 
+fun currentLogFileNameTime():String{
+    val format = SimpleDateFormat("ddMMyy_HHmmss", Locale.getDefault())
+    return format.format(Date(System.currentTimeMillis()))
+}
+
 fun currentLogMessageTime():String{
-    val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+    val format = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault())
     return format.format(Date(System.currentTimeMillis()))
 }
