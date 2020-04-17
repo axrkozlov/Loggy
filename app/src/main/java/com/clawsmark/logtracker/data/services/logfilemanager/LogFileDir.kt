@@ -1,11 +1,12 @@
 package com.clawsmark.logtracker.data.services.logfilemanager
 
+import android.os.Environment
+import android.os.StatFs
 import kotlinx.coroutines.*
 import java.io.*
-import java.util.concurrent.CopyOnWriteArrayList
 
-class LogFileList(private val dir: File, private val maxSizeKb: Int) : ArrayList<File>() {
-
+class LogFileDir(private val dir: File, private val maxSizeKb: Int) {
+    val list =  ArrayList<File>()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
     var sizeInKb: Long = 0
@@ -21,8 +22,8 @@ class LogFileList(private val dir: File, private val maxSizeKb: Int) : ArrayList
 
     fun update() {
         coroutineScope.launch {
-            clear()
-            addAll(dir.listFiles()
+            list.clear()
+            list.addAll(dir.listFiles()
                     .filter { it.name.contains("log") }
                     .sortedBy { it.lastModified() }
             )
@@ -33,22 +34,22 @@ class LogFileList(private val dir: File, private val maxSizeKb: Int) : ArrayList
 
     suspend fun deleteFileFromDir(file: File) = coroutineScope {
         file.delete()
-        if (!file.exists()) this@LogFileList.remove(file)
+        if (!file.exists()) list.remove(file)
         else throw Exception("File ${file.name} was not deleted from directory $dir")
 
     }
 
     suspend fun deleteFileFromDir(fileName: String) = coroutineScope {
-        this@LogFileList.forEach {
+        list.forEach {
             if (it.name == fileName) deleteFileFromDir(it)
         }
     }
 
     private suspend fun cropToSize() {
         coroutineScope {
-            if (sizeInKb > maxSizeKb && size > 0) {
+            if (sizeInKb > maxSizeKb && list.size > 0) {
                 try {
-                    deleteFileFromDir(this@LogFileList[0])
+                    deleteFileFromDir(list[0])
                     measure()
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -59,11 +60,12 @@ class LogFileList(private val dir: File, private val maxSizeKb: Int) : ArrayList
 
     private suspend fun measure() {
         var sizeInB = 0L
-        this@LogFileList.forEach {
+        list.forEach {
             sizeInB += it.length()
         }
         sizeInKb = sizeInB / 1024
         cropToSize()
+
     }
 
 }

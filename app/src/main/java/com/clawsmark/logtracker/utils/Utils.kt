@@ -1,19 +1,19 @@
 package com.clawsmark.logtracker.utils
 
-import com.clawsmark.logtracker.tracker.Tracker
+import com.clawsmark.logtracker.loggy.Loggy
 import java.text.SimpleDateFormat
 import java.util.*
 
 fun trace(tag: String, message: String){
-    Tracker.i(tag,message)
+    Loggy.i(tag,message)
 }
 
 fun traceWarning(tag: String, message: String){
-    Tracker.w(tag,message)
+    Loggy.w(tag,message)
 }
 
 fun traceError(tag: String, message: String){
-    Tracker.e(tag,message)
+    Loggy.e(tag,message)
 }
 
 fun currentLogFileNameTime():String{

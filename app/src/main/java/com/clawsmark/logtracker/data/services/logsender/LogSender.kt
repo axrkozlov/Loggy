@@ -1,21 +1,18 @@
 package com.clawsmark.logtracker.data.services.logsender
 
 import android.util.Log
-import com.clawsmark.logtracker.data.services.logfilemanager.LogFileDao
-import com.clawsmark.logtracker.locator.LogTrackerServiceLocator
+import com.clawsmark.logtracker.data.services.logfilemanager.LogFileDir
 import kotlinx.coroutines.*
 import java.io.File
 
 
-object LogSender {
+class LogSender(val analytiscDir:LogFileDir) {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
 
     private var sentLogNames = mutableListOf<String>()
 
-    private val logFileDao: LogFileDao = LogTrackerServiceLocator.LogFileDao
-    private val allLogs = logFileDao.trackerLogs
     private var logsMustBeSent = listOf<File>()
 
     init {
@@ -24,15 +21,9 @@ object LogSender {
         }
     }
 
-    fun markFileAsSent(fileName: String) {
+    fun markFileAsSent(file: File) {
         coroutineScope.launch {
-
-//
-            logsMustBeSent = allLogs
-//            sentLogNames.add(logsMustBeSent[0].nameWithoutExtension)
-
-            sentLogNames.add(logsMustBeSent[2].nameWithoutExtension)
-
+            sentLogNames.add(file.nameWithoutExtension)
             updateLogFiles()
         }
     }
@@ -40,14 +31,55 @@ object LogSender {
     private suspend fun updateLogFiles() {
         coroutineScope {
             delay(1000)
+            val allLogs = analytiscDir.list
             logsMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }
-            val allFileNames = allLogs.map { file -> file.nameWithoutExtension }
-            sentLogNames.retainAll { allFileNames.contains(it) }
-            logsMustBeSent.forEach {
-                Log.i("LogSender", "updateLogFiles: $it")
-            }
-            Log.i("LogSender", "___________________________________t")
+            val allLogsNames = allLogs.map { file -> file.nameWithoutExtension }
+            sentLogNames.retainAll { allLogsNames.contains(it) }
         }
     }
+
+    var isRunning = true
+        private set
+var job:Job?=null
+    fun startSending() {
+        job=coroutineScope.launch {
+            launch {
+                isRunning = true
+                while (isRunning) {
+                    delay(1000)
+                    send()
+                }
+            }
+        }
+    }
+
+    fun stopSending() {
+        isRunning = false
+        //cancel call
+        job?.cancel()
+    }
+
+    suspend fun send() {
+        coroutineScope {
+            updateLogFiles()
+            if (logsMustBeSent.isNotEmpty()) {
+                sendFile(logsMustBeSent[0])
+            } else isRunning = false
+        }
+    }
+
+
+    suspend fun sendFile(file: File) {
+        coroutineScope {
+//            api.send(file)
+            Log.i("LogSender", "sendFile:${file.nameWithoutExtension}")
+            LogUploader().uploadSingleFile(file){
+                Log.i("LogSender", "sendFile: $it")
+                markFileAsSent(file)
+            }
+
+        }
+    }
+
 
 }

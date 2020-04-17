@@ -1,29 +1,29 @@
 package com.clawsmark.logtracker
 
-import android.Manifest
 import android.app.ProgressDialog
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import com.clawsmark.logtracker.api.FileUploader
 import com.clawsmark.logtracker.api.FileUploader.FileUploaderCallback
 import com.clawsmark.logtracker.data.services.logsender.LogSender
-import com.clawsmark.logtracker.tracker.Tracker
 import com.clawsmark.logtracker.utils.trace
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import java.io.File
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
     var files = ArrayList<String>()
     private var pDialog: ProgressDialog? = null
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -32,12 +32,15 @@ class MainActivity : AppCompatActivity() {
             fileUploader!!.cancel()
             pDialog!!.dismiss() //dismiss dialog
         }
+        trace("asdf","asdf")
         findViewById<View>(R.id.btnSelectFiles).setOnClickListener {
-            for (i in 1..100) {
-                trace("MainActivity", "message $i")
-            }
-            Tracker.saveBuffer()
-            LogSender.markFileAsSent("")
+//            LogSender.startSending()
+//            coroutineScope.launch {
+//                for (i in 0..10_000) {
+//                    trace("MainActivity", "message $i LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG")
+//                }
+//                Tracker.saveBuffer()
+//            }
 
 //            if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 //                    != PackageManager.PERMISSION_GRANTED) {
@@ -50,6 +53,9 @@ class MainActivity : AppCompatActivity() {
 //                intent.action = Intent.ACTION_GET_CONTENT
 //                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1)
 //            }
+        }
+        findViewById<View>(R.id.btnStop).setOnClickListener {
+//            LogSender.stopSending()
         }
     }
 
