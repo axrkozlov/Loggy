@@ -57,10 +57,8 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
     private fun readLogcatLine(): Message? = bufferedReader?.readLine()?.let { LogcatMessage(it) }
 
     private fun setupLogcatBufferSize() {
-        var size = min(prefs.logcatBufferSizeKb, 100)
-        size = max(size, prefs.logcatMaxBufferSizeKb)
         try {
-            val command = "logcat -g ${size}K"
+            val command = "logcat -g ${prefs.logcatBufferSizeKb}K"
             Runtime.getRuntime().exec(command)
         } catch (e: Exception) {
             e.printStackTrace()

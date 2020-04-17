@@ -1,7 +1,9 @@
 package com.clawsmark.logtracker.data.buffer
 
+import android.util.Log
 import com.clawsmark.logtracker.data.writer.BufferWriter
 import com.clawsmark.logtracker.data.Message
+import java.lang.Exception
 
 abstract class Buffer {
     abstract val bufferWriter: BufferWriter
@@ -19,13 +21,17 @@ abstract class Buffer {
     fun save(){
         bufferWriter.saveBuffer(this)
     }
+    fun save(exception: Exception,isFatal :Boolean = false){
+        bufferWriter.saveBuffer(this,exception,isFatal)
+    }
     var isBufferOverflow = false
     set (value)  {
         if (value && field!=value) onBufferOverflow()
         field = value
     }
     fun onBufferOverflow(){
-//        timber.log.Timber.i("onBufferOverflow")
+        Log.i("Buffer", "onBufferOverflow: ")
+
     }
 
 }
