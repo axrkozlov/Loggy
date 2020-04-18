@@ -35,10 +35,9 @@ object Loggy : LoggyComponent, KoinComponent {
         if (context.isAnalyticsEnabled) analyticsBuffer.push(AnalyticsMessage(tag, message, MessageLevel.ERROR))
     }
 
-    fun log(exception: Exception, isFatal: Boolean = false) {
-        if (context.isAnalyticsEnabled) analyticsBuffer.save(exception, isFatal)
-        if (context.isLogcatCrashEnabled) logcatBuffer.save(exception, isFatal)
-
+    fun log(throwable: Throwable, isFatal: Boolean = false) {
+        if (context.isAnalyticsEnabled) analyticsBuffer.save(throwable, isFatal)
+        if (context.isLogcatCrashEnabled) logcatBuffer.save(throwable, isFatal)
     }
 
     fun updatePrefs() = context.updatePrefs()

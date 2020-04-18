@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity() {
             CoroutineScope(Job()).launch (Dispatchers.IO){
                 for (i in 1..10_000) {
                     trace("SOME","Message $i")
+                    if (i==500)throw Exception("rerere")
                     delay(10)
                 }
 

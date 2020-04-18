@@ -24,7 +24,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     private val terminalId: String = prefs.terminalId
     private val tempFileName = "~temp.txt"
 
-    private var causeException: Exception? = null
+    private var causeThrowable: Throwable? = null
         set(value) {
             exceptionId = if (value != null) UUID.randomUUID()
             else null
@@ -50,20 +50,26 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         }
     }
 
-    override fun saveBuffer(buffer: Buffer, causeException: Exception?, isFatal: Boolean) {
-        this.causeException = causeException
+    override fun saveBuffer(buffer: Buffer, causeThrowable: Throwable?, isFatal: Boolean) {
+        causeThrowable.toString()
+        this.causeThrowable = causeThrowable
         this.isFatal = isFatal
         if (hasEnoughMemory) writeBuffer(buffer)
         else context.hasNoEnoughMemory
     }
 
+    var writingJob : Job? = null
     private var isWritingInProgress = false
     private fun writeBuffer(buffer: Buffer) {
+        if (isFatal) {
+            writeBufferOnExit(buffer)
+            return
+        }
         if (isWritingInProgress) return
         Log.i("BufferWriterImpl", "writeBuffer: ")
         isWritingInProgress = true
         val coroutineScope = CoroutineScope(Job())
-        coroutineScope.launch(Dispatchers.IO) {
+        writingJob = coroutineScope.launch(Dispatchers.IO) {
             try {
                 writeBufferToFile(buffer)
             } catch (e: Exception) {
@@ -75,11 +81,23 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         }
     }
 
+    private var isWritingOnExit = false
+    private fun writeBufferOnExit(buffer: Buffer){
+        writingJob?.cancel()
+        isWritingOnExit = true
+        try {
+            writeBufferToFile(buffer)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
 
     fun writeBufferToFile(buffer: Buffer) {
+        closeFile()
         openFile()
         writeMessages(buffer)
-        if (causeException != null) finalizeFile()
+        if (isWritingOnExit) finalizeFile()
         closeFile()
     }
 
@@ -122,6 +140,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     }
 
     private fun closeFile() {
+        if (osw == null) return
         osw!!.flush()
         osw!!.close()
         osw = null
@@ -138,9 +157,9 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         endTime = currentLogFinalTime()
         osw!!.write("\"\"],\n")
         var causeExceptionInfo: CauseExceptionInfo? =null
-        causeException?.let {
+        causeThrowable?.let {
             causeExceptionInfo=CauseExceptionInfo(
-                    causeException!!.toString(),
+                    causeThrowable!!.toString(),
                     exceptionId!!,
                     isFatal)
         }
@@ -151,7 +170,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
                 endTime,
                 causeExceptionInfo
         )
-        osw!!.write(reportInfo.toJson())
+        osw!!.write("\"reportInfo\":${reportInfo.toJson()}")
         osw!!.write("}")
         closeFile()
         renameFile()

@@ -21,8 +21,8 @@ abstract class Buffer {
     fun save(){
         bufferWriter.saveBuffer(this)
     }
-    fun save(exception: Exception,isFatal :Boolean = false){
-        bufferWriter.saveBuffer(this,exception,isFatal)
+    fun save(throwable: Throwable,isFatal :Boolean = false){
+        bufferWriter.saveBuffer(this,throwable,isFatal)
     }
     var isBufferOverflow = false
     set (value)  {

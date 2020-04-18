@@ -21,7 +21,7 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
 
     private val localBuffer = ConcurrentLinkedQueue<Message>()
     private var isLocalBufferEnabled = false
-
+    val pid = android.os.Process.myPid()
     override val size: Int
         get() = if (isLocalBufferEnabled) localBuffer.size else 0
 
@@ -36,7 +36,7 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
         register()
     }
     override fun onPrefsUpdated() {
-//        setupLogcatBufferSize()
+        setupLogcatBufferSize()
         setupBuffer()
         isLocalBufferEnabled = context.isLogcatAppEnabled || context.isLogcatFullEnabled
         if (isLocalBufferEnabled) return startLocalBuffer()
@@ -63,7 +63,7 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
 
     private fun setupLogcatBufferSize() {
         try {
-            val command = "logcat -g ${prefs.logcatBufferSizeKb}K"
+            val command = "logcat -g ${prefs.logcatBufferSizeKb}K -c"
             Runtime.getRuntime().exec(command)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -72,9 +72,8 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
 
     private fun setupBuffer() {
         try {
-//            val command = if (context.isLogcatFullEnabled) "logcat -d -v time"
-//            else "logcat -b -v time"
-            val command ="logcat -v time"
+            val command = if (context.isLogcatFullEnabled) "logcat -v time"
+            else "logcat -v time $pid-* "
             val process: Process = Runtime.getRuntime().exec(command)
             bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
         } catch (e: Exception) {
