@@ -1,7 +1,5 @@
 package com.clawsmark.logtracker.data.services.logfilemanager
 
-import android.os.Environment
-import android.os.StatFs
 import kotlinx.coroutines.*
 import java.io.*
 

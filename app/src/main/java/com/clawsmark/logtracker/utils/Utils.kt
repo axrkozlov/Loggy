@@ -16,7 +16,7 @@ fun traceError(tag: String, message: String){
     Loggy.e(tag,message)
 }
 
-fun currentLogFileNameTime():String{
+fun currentLogFinalTime():String{
     val format = SimpleDateFormat("ddMMyy_HHmmss", Locale.getDefault())
     return format.format(Date(System.currentTimeMillis()))
 }

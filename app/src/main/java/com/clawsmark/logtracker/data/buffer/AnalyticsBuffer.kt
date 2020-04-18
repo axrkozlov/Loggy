@@ -7,6 +7,9 @@ import com.clawsmark.logtracker.loggy.LoggyContext
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class AnalyticsBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : Buffer(), LoggyComponent {
+    init {
+        register()
+    }
     private val localBuffer = ConcurrentLinkedQueue<Message>()
 
     override val size: Int

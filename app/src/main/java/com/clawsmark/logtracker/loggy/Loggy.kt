@@ -9,10 +9,12 @@ import org.koin.core.get
 import java.lang.Exception
 
 object Loggy : LoggyComponent, KoinComponent {
-
     private var logcatBuffer: LogcatBuffer = get()
     override val context: LoggyContext = get()
     private var analyticsBuffer: AnalyticsBuffer = get()
+    init {
+        register()
+    }
 
     override fun onPrefsUpdated() {
     }

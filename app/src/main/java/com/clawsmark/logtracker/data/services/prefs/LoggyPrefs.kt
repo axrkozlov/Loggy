@@ -1,5 +1,6 @@
 package com.clawsmark.logtracker.data.services.prefs
 
+import java.io.File
 import java.text.Format
 
 interface LoggyPrefs {
@@ -15,6 +16,8 @@ interface LoggyPrefs {
     val logcatMaxBufferSizeKb:Int
 
     val maxFileSizeKb :Int
+    val maxFileSizeBytes :Int
+    get ()=maxFileSizeKb*1024
 
     val serialNumber:String
     val terminalId:String
@@ -25,6 +28,5 @@ interface LoggyPrefs {
     val logcatFileNameFormat:String
 
 
-
-
+    val loggyPath: String
 }

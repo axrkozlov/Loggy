@@ -13,9 +13,7 @@ import com.clawsmark.logtracker.api.FileUploader
 import com.clawsmark.logtracker.api.FileUploader.FileUploaderCallback
 import com.clawsmark.logtracker.data.services.logsender.LogSender
 import com.clawsmark.logtracker.utils.trace
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 
@@ -53,9 +51,19 @@ class MainActivity : AppCompatActivity() {
 //                intent.action = Intent.ACTION_GET_CONTENT
 //                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1)
 //            }
+            CoroutineScope(Job()).launch (Dispatchers.IO){
+                for (i in 1..10_000) {
+                    trace("SOME","Message $i")
+                    delay(10)
+                }
+
+            }
+
         }
         findViewById<View>(R.id.btnStop).setOnClickListener {
 //            LogSender.stopSending()
+            Log.i("MainActivity", "onCreate: ")
+            
         }
     }
 

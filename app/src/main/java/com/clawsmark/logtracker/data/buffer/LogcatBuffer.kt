@@ -17,6 +17,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 class LogcatBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : LoggyComponent, Buffer() {
+
+
     private val localBuffer = ConcurrentLinkedQueue<Message>()
     private var isLocalBufferEnabled = false
 
@@ -29,12 +31,15 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
         get() = prefs.maxBufferSize
 
     private var bufferedReader: BufferedReader? = null
+
+    init {
+        register()
+    }
     override fun onPrefsUpdated() {
-        setupLogcatBufferSize()
+//        setupLogcatBufferSize()
         setupBuffer()
         isLocalBufferEnabled = context.isLogcatAppEnabled || context.isLogcatFullEnabled
         if (isLocalBufferEnabled) return startLocalBuffer()
-
     }
 
     private fun startLocalBuffer() {
@@ -49,7 +54,7 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
     }
 
     override fun push(message: Message) {
-        localBuffer.add(message)
+        if (isBufferAvailable)  localBuffer.add(message)
     }
 
     override fun pull(): Message? = if (isLocalBufferEnabled) localBuffer.poll() else readLogcatLine()
@@ -67,8 +72,9 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
 
     private fun setupBuffer() {
         try {
-            val command = if (context.isLogcatFullEnabled) "logcat -d -v time"
-            else "logcat -d -v time"
+//            val command = if (context.isLogcatFullEnabled) "logcat -d -v time"
+//            else "logcat -b -v time"
+            val command ="logcat -v time"
             val process: Process = Runtime.getRuntime().exec(command)
             bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
         } catch (e: Exception) {

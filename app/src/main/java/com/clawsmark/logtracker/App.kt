@@ -1,7 +1,9 @@
 package com.clawsmark.logtracker
 
 import android.app.Application
+import android.util.Log
 import com.clawsmark.logtracker.di.appModule
+import com.clawsmark.logtracker.loggy.Loggy
 import com.clawsmark.logtracker.utils.trace
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -17,6 +19,15 @@ class App : Application() {
             modules(listOf(appModule))
         }
         trace(tag, "onCreate")
+
+        Loggy.context.logLevel = 3
+        Loggy.updatePrefs()
+        for (i in 1..1000) {
+            Log.i("App", "onCreate: ")
+            
+            
+        }
+
 
     }
 }

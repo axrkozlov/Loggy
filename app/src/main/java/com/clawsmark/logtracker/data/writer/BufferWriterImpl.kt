@@ -2,12 +2,14 @@ package com.clawsmark.logtracker.data.writer
 
 import android.os.Environment
 import android.os.StatFs
+import android.util.Log
 import com.clawsmark.logtracker.data.ReportInfo
 import com.clawsmark.logtracker.data.CauseExceptionInfo
 import com.clawsmark.logtracker.data.ReportType
 import com.clawsmark.logtracker.data.buffer.Buffer
 import com.clawsmark.logtracker.loggy.LoggyComponent
 import com.clawsmark.logtracker.loggy.LoggyContext
+import com.clawsmark.logtracker.utils.currentLogFinalTime
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
@@ -20,7 +22,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     private val dir: String = if (reportType==ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
     private val serialNumber: String = prefs.serialNumber
     private val terminalId: String = prefs.terminalId
-    private val tempFileName = "~temp.log"
+    private val tempFileName = "~temp.txt"
 
     private var causeException: Exception? = null
         set(value) {
@@ -34,6 +36,19 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     private val hasEnoughMemory: Boolean
         get() = StatFs(Environment.getExternalStorageDirectory().path).availableBytes > context.minAvailableMemoryBytes
 
+    init {
+        register()
+        createDir()
+    }
+
+    private fun createDir(){
+        try {
+            val fDir =File(dir)
+            if (!fDir.exists()) fDir.mkdirs()
+        } catch (e:Exception){
+            e.printStackTrace()
+        }
+    }
 
     override fun saveBuffer(buffer: Buffer, causeException: Exception?, isFatal: Boolean) {
         this.causeException = causeException
@@ -45,6 +60,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     private var isWritingInProgress = false
     private fun writeBuffer(buffer: Buffer) {
         if (isWritingInProgress) return
+        Log.i("BufferWriterImpl", "writeBuffer: ")
         isWritingInProgress = true
         val coroutineScope = CoroutineScope(Job())
         coroutineScope.launch(Dispatchers.IO) {
@@ -61,11 +77,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
 
 
     fun writeBufferToFile(buffer: Buffer) {
-        if (tempFile == null || !tempFile!!.exists()) {
-            createTempFile()
-        }
         openFile()
-        if (isFileJustCreated) writeStartBlock()
         writeMessages(buffer)
         if (causeException != null) finalizeFile()
         closeFile()
@@ -74,7 +86,6 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     private fun writeStartBlock() {
         val string = "{\n  \"report\": ["
         osw!!.write(string)
-        isFileJustCreated = false
     }
 
     private fun writeMessages(buffer: Buffer) {
@@ -83,16 +94,51 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
             val message = buffer.pull()
             if (message != null) osw?.write("${message.content},\n")
             else hasMessages = false
-            checkFileSize()
+            checkTempFile()
         }
     }
 
     private var endTime: String = ""
 
-    private fun writeEndBlock() {
+    private var tempFile: File = File(dir, tempFileName)
+    private var fOut: FileOutputStream? = null
+    private var osw: OutputStreamWriter? = null
+
+
+    fun createTempFileIfNotExist():Boolean {
+        var isFileJustCreated: Boolean =false
+        if (!tempFile.exists()) {
+            tempFile.createNewFile()
+            isFileJustCreated = true
+        }
+        return isFileJustCreated
+    }
+
+    fun openFile() {
+        val isFileJustCreated: Boolean = createTempFileIfNotExist()
+        fOut = FileOutputStream(tempFile,true)
+        osw = OutputStreamWriter(fOut)
+        if (isFileJustCreated) writeStartBlock()
+    }
+
+    private fun closeFile() {
+        osw!!.flush()
+        osw!!.close()
+        osw = null
+    }
+
+    private fun checkTempFile() {
+        if (tempFile.length() > prefs.maxFileSizeBytes) {
+            finalizeFile()
+        }
+        if (osw==null) openFile()
+    }
+
+    private fun finalizeFile() {
+        endTime = currentLogFinalTime()
         osw!!.write("\"\"],\n")
-        var causeExceptionInfo: CauseExceptionInfo?
-        causeException.let {
+        var causeExceptionInfo: CauseExceptionInfo? =null
+        causeException?.let {
             causeExceptionInfo=CauseExceptionInfo(
                     causeException!!.toString(),
                     exceptionId!!,
@@ -107,58 +153,15 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         )
         osw!!.write(reportInfo.toJson())
         osw!!.write("}")
-//        string.append("\"serialNumber\": \"$serialNumber\"\n")
-//        string.append("\"terminalId\": \"$terminalId\"\n")
-//        endTime = currentLogFileNameTime()
-//        string.append("\"time\": \"$endTime\"\n")
-//        string.append("\"causeException\": {\n")
-//        string.append("\"exception\": \"$causeException\",\n")
-//        string.append("\"id\": \"$exceptionId\",\n")
-//        string.append("\"isFatal\": \"$isFatal\"}\n")
-
-    }
-
-    private var tempFile: File? = null
-    private var fOut: FileOutputStream? = null
-    private var osw: OutputStreamWriter? = null
-    private var isFileJustCreated = false
-
-    fun createTempFile() {
-        tempFile = File(dir, tempFileName)
-        tempFile!!.createNewFile()
-    }
-
-    fun openFile() {
-        fOut = FileOutputStream(tempFile)
-        osw = OutputStreamWriter(fOut)
-    }
-
-    fun closeFile() {
-        if (osw == null) return
-        osw?.flush()
-        osw?.close()
-        osw = null
-    }
-
-
-    private fun checkFileSize() {
-        if (tempFile!!.length() > prefs.maxFileSizeKb) {
-            finalizeFile()
-        }
-    }
-
-    private fun finalizeFile() {
-        writeEndBlock()
         closeFile()
         renameFile()
-        createTempFile()
     }
 
 
     private fun renameFile() {
         val name = String.format("%1$2s_%2$2s_%3$2s.log", serialNumber, endTime, reportType)
         val file = File(dir, name)
-        tempFile?.renameTo(file)
+        tempFile.renameTo(file)
     }
 
     override fun onPrefsUpdated() {

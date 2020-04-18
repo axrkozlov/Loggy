@@ -1,8 +1,8 @@
 package com.clawsmark.logtracker.data.services.prefs
 
-import android.content.Context
 import android.content.SharedPreferences
-import java.text.Format
+import android.os.Environment
+import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
@@ -21,8 +21,8 @@ class LoggyPrefsImpl(val preferences: SharedPreferences) : LoggyPrefs {
     override val logcatBufferSizeKb: Int
         get() {
             val value = 1000
-            var size = min(value, logcatMinBufferSizeKb)
-            size = max(size, logcatMaxBufferSizeKb)
+            var size = max(value, logcatMinBufferSizeKb)
+            size = min(size, logcatMaxBufferSizeKb)
             return size
         }
     override val logcatMinBufferSizeKb: Int
@@ -34,12 +34,11 @@ class LoggyPrefsImpl(val preferences: SharedPreferences) : LoggyPrefs {
         get() = 8192
 
     override val maxFileSizeKb: Int
-        get() = 1024
-
-    override val logcatPath: String
-        get() = "logger/logcat"
-    override val analyticsPath: String
-        get() = "logger/analytics"
+        get() = 256
+    private val sdCard: File = Environment.getExternalStorageDirectory()
+    override val loggyPath = "${sdCard.absolutePath}/loggy"
+    override val logcatPath: String= "$loggyPath/logcat"
+    override val analyticsPath: String = "$loggyPath/analytics"
     override val analyticsFileNameFormat: String
         get() = "%s"
     override val logcatFileNameFormat: String
