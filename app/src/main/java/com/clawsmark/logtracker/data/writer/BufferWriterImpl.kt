@@ -19,6 +19,9 @@ import java.util.*
 
 class BufferWriterImpl(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent, BufferWriter {
 
+    override val componentName: String
+        get() = super.componentName + reportType
+
     private val path: String = if (reportType==ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
     private val dir = File(path)
     private val tempFileName = "~temp.txt"

@@ -21,14 +21,14 @@ import org.koin.dsl.module
 val appModule = module {
     single { provideSharedPreferences(androidContext()) }
     single<LoggyPrefs> { LoggyPrefsImpl(get()) }
-    single<LoggyContext> { LoggyContextImpl(get() ) }
-    single<BufferWriter>(named("analyticsBufferWriter")) { BufferWriterImpl(get(),ReportType.ANALYTIC) }
-    single { AnalyticsBuffer(get(),get(named("analyticsBufferWriter")))    }
-    single<BufferWriter>(named("logcatBufferWriter")) { BufferWriterImpl(get(),ReportType.REGULAR) }
-    single { LogcatBuffer(get(),get(named("logcatBufferWriter")))    }
-    single<LoggyFileList> (named("analyticsFileList")) {LoggyFileList(get(),ReportType.ANALYTIC) }
-    single<LoggyFileList> (named("logcatFileList")) {LoggyFileList(get(),ReportType.REGULAR) }
-    single { LoggySender(get(),get(named("analyticsFileList")),get(named("logcatFileList"))) }
+    single<LoggyContext> { LoggyContextImpl(get()) }
+    single<BufferWriter>(named("analyticsBufferWriter")) { BufferWriterImpl(get(), ReportType.ANALYTIC) }
+    single { AnalyticsBuffer(get(), get(named("analyticsBufferWriter"))) }
+    single<BufferWriter>(named("logcatBufferWriter")) { BufferWriterImpl(get(), ReportType.REGULAR) }
+    single { LogcatBuffer(get(), get(named("logcatBufferWriter"))) }
+    single<LoggyFileList>(named("analyticsFileList")) { LoggyFileList(get(), ReportType.ANALYTIC) }
+    single<LoggyFileList>(named("logcatFileList")) { LoggyFileList(get(), ReportType.REGULAR) }
+    single { LoggySender(get(), get(named("analyticsFileList")), get(named("logcatFileList"))) }
 
 //    single { LogcatBuffer(get(),getProperty("logcatBufferWriter"))    }
 //    factory(named("analyticsBufferWriter")) { BufferWriterImpl(get(),ReportType.ANALYTIC) }

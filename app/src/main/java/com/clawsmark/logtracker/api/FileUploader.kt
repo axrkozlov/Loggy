@@ -119,11 +119,12 @@ class FileUploader {
     private fun uploadSingleFile(index: Int) {
         val fileBody = PRRequestBody(files[index])
         val filePart = MultipartBody.Part.createFormData(filekey, files[index]!!.name, fileBody)
-        call = if (auth_token.isEmpty()) {
-            uploadInterface.uploadFile(uploadURL, filePart)
-        } else {
-            uploadInterface.uploadFile(uploadURL, filePart, auth_token)
-        }
+//        call = if (auth_token.isEmpty()) {
+//            uploadInterface.uploadFile(uploadURL, filePart)
+//        } else {
+//            uploadInterface.uploadFile(uploadURL, filePart, auth_token)
+//        }
+        call = uploadInterface.uploadFile("api/v01/Logs/UploadOrgFile", filePart)
         call!!.enqueue(object : Callback<JsonElement?> {
             override fun onResponse(call: Call<JsonElement?>, response: Response<JsonElement?>) {
                 if (response.isSuccessful) {

@@ -20,10 +20,10 @@ import java.io.IOException
 class LogUploader {
     private lateinit var files: Array<File?>
     var uploadIndex = -1
-    private var uploadURL = "/"
+    private var uploadURL = "api/v01/Logs/UploadOrgFile"
 //    private var totalFileLength: Long = 0
     private var totalFileUploaded: Long = 0
-    private var filekey = "file"
+    private var filekey = "uploadedFile"
     private val uploadInterface: UploadInterface
     private var auth_token = ""
     private lateinit var responses: Array<String?>
@@ -34,16 +34,17 @@ class LogUploader {
 
 
     private interface UploadInterface {
-        @Multipart
-        @POST("/")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Response<FileIoResponse>
+//        @Multipart
+//        @POST("/api/v01/Logs/UploadOrgFile")
+//        suspend fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Response<String?>
 
         @Multipart
-        @POST("/")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?): Response<FileIoResponse>
+        @POST("api/v01/Logs/UploadOrgFile")
+        suspend fun uploadFile(@Part file: MultipartBody.Part): Response <Any?>?
+
     }
 
-    inner class PRRequestBody(private val mFile: File?) : RequestBody() {
+    inner class PRRequestBody(private val mFile: File) : RequestBody() {
         override fun contentType(): MediaType? {
             // i want to upload only images
             return MediaType.parse("text/plain")
@@ -70,6 +71,8 @@ class LogUploader {
                     uploaded += read.toLong()
                     sink.write(buffer, 0, read)
                 }
+            }catch(e:java.lang.Exception){
+                e.printStackTrace()
             } finally {
                 `in`.close()
             }
@@ -86,20 +89,37 @@ class LogUploader {
 
         Log.i("LogUploader", "uploadSingleFile: $uploadURL, $auth_token")
         try {
-            val response =if (auth_token.isEmpty()) {
-                safeApiCall {
-                    uploadInterface.uploadFile(filePart)
-                }
-            } else {
-                safeApiCall {
-                    uploadInterface.uploadFile(filePart, auth_token)
-                }
-            }
+//            val response =
+//                safeApiCall {
+//                    uploadInterface.uploadFile(filePart)
+//                }
+//            } else {
+//                safeApiCall {
+//                    uploadInterface.uploadFile(filePart, auth_token)
+//                }
+//            }
 
 //            val response = call!!.execute()
-            Log.i("LogUploader", "uploadSingleFile: ${response}")
+//            Log.i("LogUploader", "uploadSingleFile: ${response}")
+//
+//            successCallback.invoke(response is Result.Success)
 
+
+            val MEDIA_TYPE = MediaType.parse("text/plain")
+            val body = MultipartBody.Builder().setType(MultipartBody.FORM)
+
+            val part = MultipartBody.Part.createFormData(
+                    "uploadedFile",
+                    file.name,
+                    RequestBody.create(MEDIA_TYPE, file)
+            )
+            val response =
+                    safeApiCall {
+                        uploadInterface.uploadFile(part)
+                    }
+            Log.i("LogUploader", "uploadSingleFile: ${response}")
             successCallback.invoke(response is Result.Success)
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -114,11 +134,12 @@ class LogUploader {
         private const val DEFAULT_BUFFER_SIZE = 2048
     }
 
-    suspend fun <T : Any> safeApiCall(call: suspend () -> Response<T>): Result<T> {
+    suspend fun <T : Any> safeApiCall(call: suspend () -> Response<T?>?): Result<T> {
         try {
-            val response = call()
-            if(response.isSuccessful)
-                return Result.Success(response.body()!!)
+//            val response =
+                    call()
+//            if(response?.isSuccessful==true)
+//                return Result.Success(response.body()!!)
             return Result.Error(IOException("Error Occurred during getting safe Api result"))
         } catch (e: Exception) {
             return Result.Error(e)

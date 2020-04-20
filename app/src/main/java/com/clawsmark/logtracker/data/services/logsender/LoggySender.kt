@@ -26,14 +26,14 @@ class LoggySender(override val context: LoggyContext, private val analyticsFileL
     private fun updateLogFiles() {
         val allLogs = mutableListOf<File>()
         allLogs.addAll(analyticsFileList.list)
-//        allLogs.addAll(logcatFileList.list)
+        allLogs.addAll(logcatFileList.list)
         allLogs.sortBy { it.lastModified() }
         logsMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }
         val allLogsNames = allLogs.map { file -> file.nameWithoutExtension }
-//        sentLogNames.retainAll { allLogsNames.contains(it) }
-        Log.i("LogSender", "allLogs: $allLogs")
-        Log.i("LogSender", "logsMustBeSent: $logsMustBeSent")
-        Log.i("LogSender", "sentLogNames: $sentLogNames")
+        sentLogNames.retainAll { allLogsNames.contains(it) }
+//        Log.i("LogSender", "allLogs: $allLogs")
+//        Log.i("LogSender", "logsMustBeSent: $logsMustBeSent")
+//        Log.i("LogSender", "sentLogNames: $sentLogNames")
     }
 
     var isRunning = true

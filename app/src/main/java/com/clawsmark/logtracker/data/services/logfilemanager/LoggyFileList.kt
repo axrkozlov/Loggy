@@ -5,15 +5,19 @@ import com.clawsmark.logtracker.loggy.LoggyComponent
 import com.clawsmark.logtracker.loggy.LoggyContext
 import kotlinx.coroutines.*
 import java.io.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 class LoggyFileList(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent {
+    override val componentName: String
+        get() = super.componentName + reportType
+
     init {
         register()
     }
     private val path: String = if (reportType == ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
     private val dir = File(path)
     private var limitSizeBytes: Int = 1_048_576
-    val list = ArrayList<File>()
+    val list = CopyOnWriteArrayList<File>()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
     var size: Long = 0
