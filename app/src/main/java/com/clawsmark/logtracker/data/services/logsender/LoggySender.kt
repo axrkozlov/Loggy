@@ -12,23 +12,18 @@ class LoggySender(override val context: LoggyContext, private val analyticsFileL
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
     private var sentLogNames = mutableListOf<String>()
-
-    private var logsMustBeSent = listOf<File>()
+    private var listMustBeSent = mutableListOf<File>()
 
     init {
         register()
     }
 
-    fun markFileAsSent(file: File) {
-        sentLogNames.add(file.nameWithoutExtension)
-    }
-
-    private fun updateLogFiles() {
+    private fun updateSendingFileList() {
         val allLogs = mutableListOf<File>()
         allLogs.addAll(analyticsFileList.list)
         allLogs.addAll(logcatFileList.list)
         allLogs.sortBy { it.lastModified() }
-        logsMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }
+        listMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }.toMutableList()
         val allLogsNames = allLogs.map { file -> file.nameWithoutExtension }
         sentLogNames.retainAll { allLogsNames.contains(it) }
 //        Log.i("LogSender", "allLogs: $allLogs")
@@ -41,11 +36,12 @@ class LoggySender(override val context: LoggyContext, private val analyticsFileL
     var job: Job? = null
 
     fun startSending() {
+        updateSendingFileList()
         job = coroutineScope.launch {
             isRunning = true
-            while (isRunning) {
-                delay(1000)
-                send()
+            while (isRunning && listMustBeSent.isNotEmpty()) {
+                send(listMustBeSent[0])
+                listMustBeSent.removeAt(0)
             }
         }
     }
@@ -56,29 +52,21 @@ class LoggySender(override val context: LoggyContext, private val analyticsFileL
         job?.cancel()
     }
 
-    suspend fun send() {
+    private suspend fun send(file: File) {
         coroutineScope {
-            updateLogFiles()
-            if (logsMustBeSent.isNotEmpty()) {
-                sendFile(logsMustBeSent[0])
-            } else isRunning = false
+                Log.i("LogSender", "sendFile:${file.nameWithoutExtension}")
+                LoggyUploader().uploadSingleFile(file) {
+                    if (it) markFileAsSent(file)
+                }
+                delay(1000)
         }
     }
 
-
-    suspend fun sendFile(file: File) {
-        coroutineScope {
-//            api.send(file)
-            Log.i("LogSender", "sendFile:${file.nameWithoutExtension}")
-            LogUploader().uploadSingleFile(file) {
-                Log.i("LogSender", "sendFile: $it")
-                markFileAsSent(file)
-            }
-
-        }
+    private fun markFileAsSent(file: File) {
+        sentLogNames.add(file.nameWithoutExtension)
     }
 
     override fun onPrefsUpdated() {
-        updateLogFiles()
+
     }
 }

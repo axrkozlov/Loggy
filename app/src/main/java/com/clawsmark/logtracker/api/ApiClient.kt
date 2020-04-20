@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
  */
 object ApiClient {
     //    const val BASE_URL = "https://file.io"
-    const val BASE_URL = "http://kon-app2-wt3.hq.bc:8383"
+    const val BASE_URL = "http://kon-app2-wt3.hq.bc:8383/api/"
     private var retrofit: Retrofit? = null
     val client: Retrofit
         get() {
