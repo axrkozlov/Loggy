@@ -99,7 +99,7 @@ class LogUploader {
 //            val response = call!!.execute()
             Log.i("LogUploader", "uploadSingleFile: ${response}")
 
-//            successCallback.invoke(response.isSuccessful)
+            successCallback.invoke(response is Result.Success)
         } catch (e: Exception) {
             e.printStackTrace()
         }

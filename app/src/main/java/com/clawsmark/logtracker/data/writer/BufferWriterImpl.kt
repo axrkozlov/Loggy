@@ -19,10 +19,12 @@ import java.util.*
 
 class BufferWriterImpl(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent, BufferWriter {
 
-    private val dir: String = if (reportType==ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
-    private val serialNumber: String = prefs.serialNumber
-    private val terminalId: String = prefs.terminalId
+    private val path: String = if (reportType==ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
+    private val dir = File(path)
     private val tempFileName = "~temp.txt"
+
+    private var serialNumber: String = "12345678901"
+    private var terminalId: String = "12345678902"
 
     private var causeThrowable: Throwable? = null
         set(value) {
@@ -43,8 +45,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
 
     private fun createDir(){
         try {
-            val fDir =File(dir)
-            if (!fDir.exists()) fDir.mkdirs()
+            if (!dir.exists()) dir.mkdirs()
         } catch (e:Exception){
             e.printStackTrace()
         }
@@ -118,7 +119,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
 
     private var endTime: String = ""
 
-    private var tempFile: File = File(dir, tempFileName)
+    private var tempFile: File = File(path, tempFileName)
     private var fOut: FileOutputStream? = null
     private var osw: OutputStreamWriter? = null
 
@@ -179,12 +180,13 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
 
     private fun renameFile() {
         val name = String.format("%1$2s_%2$2s_%3$2s.log", serialNumber, endTime, reportType)
-        val file = File(dir, name)
+        val file = File(path, name)
         tempFile.renameTo(file)
     }
 
     override fun onPrefsUpdated() {
-
+        serialNumber = prefs.serialNumber
+        terminalId = prefs.terminalId
     }
 
 

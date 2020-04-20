@@ -35,6 +35,10 @@ class LoggyPrefsImpl(val preferences: SharedPreferences) : LoggyPrefs {
 
     override val maxFileSizeKb: Int
         get() = 256
+    override val dirSizeMb: Int
+        get() = 4
+    override val maxDirSizeMb: Int
+        get() = 8
     private val sdCard: File = Environment.getExternalStorageDirectory()
     override val loggyPath = "${sdCard.absolutePath}/loggy"
     override val logcatPath: String= "$loggyPath/logcat"
