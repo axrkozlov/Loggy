@@ -8,15 +8,23 @@ import java.io.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 class LoggyFileList(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent {
+
+
+    private val isOverflown: Boolean
+        get() = size > maxSizeBytes
+
     override val componentName: String
         get() = super.componentName + reportType
 
     init {
         register()
     }
+
     private val path: String = if (reportType == ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
     private val dir = File(path)
     private var limitSizeBytes: Int = 1_048_576
+    private var maxSizeBytes: Int = 4_194_304
+
     val list = CopyOnWriteArrayList<File>()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
@@ -25,7 +33,7 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
         get() = size / 1024 / 1024
 
     var isUpdating = false
-    fun update() {
+    fun updateFileList() {
         if (isUpdating) return
         isUpdating = true
         coroutineScope.launch {
@@ -87,7 +95,17 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
 
     override fun onPrefsUpdated() {
         limitSizeBytes = prefs.dirSizeBytes
-        update()
+        maxSizeBytes = prefs.maxDirSizeBytes
+        updateFileList()
+    }
+
+    val state = object : LoggyFileListState {
+        override fun update() {
+            updateFileList()
+        }
+
+        override val isNotOverflown: Boolean
+            get() = !this@LoggyFileList.isOverflown
     }
 
 }

@@ -7,6 +7,7 @@ import com.clawsmark.logtracker.data.ReportInfo
 import com.clawsmark.logtracker.data.CauseExceptionInfo
 import com.clawsmark.logtracker.data.ReportType
 import com.clawsmark.logtracker.data.buffer.Buffer
+import com.clawsmark.logtracker.data.services.logfilemanager.LoggyFileListState
 import com.clawsmark.logtracker.loggy.LoggyComponent
 import com.clawsmark.logtracker.loggy.LoggyContext
 import com.clawsmark.logtracker.utils.currentLogFinalTime
@@ -17,7 +18,7 @@ import java.io.OutputStreamWriter
 import java.lang.Exception
 import java.util.*
 
-class BufferWriterImpl(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent, BufferWriter {
+class BufferWriterImpl(override val context: LoggyContext, private val reportType: ReportType, val loggyFileListState: LoggyFileListState) : LoggyComponent, BufferWriter {
 
     override val componentName: String
         get() = super.componentName + reportType
@@ -58,7 +59,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         causeThrowable.toString()
         this.causeThrowable = causeThrowable
         this.isFatal = isFatal
-        if (hasEnoughMemory) writeBuffer(buffer)
+        if (hasEnoughMemory && loggyFileListState.isNotOverflown) writeBuffer(buffer)
         else context.hasNoEnoughMemory
     }
 
@@ -76,6 +77,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         writingJob = coroutineScope.launch(Dispatchers.IO) {
             try {
                 writeBufferToFile(buffer)
+                loggyFileListState.update()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

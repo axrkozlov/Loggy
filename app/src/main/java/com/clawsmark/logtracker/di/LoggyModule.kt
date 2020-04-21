@@ -7,6 +7,7 @@ import com.clawsmark.logtracker.data.ReportType
 import com.clawsmark.logtracker.data.buffer.AnalyticsBuffer
 import com.clawsmark.logtracker.data.buffer.LogcatBuffer
 import com.clawsmark.logtracker.data.services.logfilemanager.LoggyFileList
+import com.clawsmark.logtracker.data.services.logfilemanager.LoggyFileListState
 import com.clawsmark.logtracker.data.services.logsender.LoggySender
 import com.clawsmark.logtracker.data.services.prefs.LoggyPrefs
 import com.clawsmark.logtracker.data.services.prefs.LoggyPrefsImpl
@@ -22,12 +23,17 @@ val appModule = module {
     single { provideSharedPreferences(androidContext()) }
     single<LoggyPrefs> { LoggyPrefsImpl(get()) }
     single<LoggyContext> { LoggyContextImpl(get()) }
-    single<BufferWriter>(named("analyticsBufferWriter")) { BufferWriterImpl(get(), ReportType.ANALYTIC) }
-    single { AnalyticsBuffer(get(), get(named("analyticsBufferWriter"))) }
-    single<BufferWriter>(named("logcatBufferWriter")) { BufferWriterImpl(get(), ReportType.REGULAR) }
-    single { LogcatBuffer(get(), get(named("logcatBufferWriter"))) }
+
+
     single<LoggyFileList>(named("analyticsFileList")) { LoggyFileList(get(), ReportType.ANALYTIC) }
     single<LoggyFileList>(named("logcatFileList")) { LoggyFileList(get(), ReportType.REGULAR) }
+    single(named("analyticsFileListState")) { provideLoggyFileListState(get(named("analyticsFileList"))) }
+    single(named("logcatFileListState")) { provideLoggyFileListState(get(named("logcatFileList"))) }
+
+    single<BufferWriter>(named("analyticsBufferWriter")) { BufferWriterImpl(get(), ReportType.ANALYTIC, get(named("analyticsFileListState"))) }
+    single { AnalyticsBuffer(get(), get(named("analyticsBufferWriter"))) }
+    single<BufferWriter>(named("logcatBufferWriter")) { BufferWriterImpl(get(), ReportType.REGULAR, get(named("logcatFileListState"))) }
+    single { LogcatBuffer(get(), get(named("logcatBufferWriter"))) }
     single { LoggySender(get(), get(named("analyticsFileList")), get(named("logcatFileList"))) }
 
 //    single { LogcatBuffer(get(),getProperty("logcatBufferWriter"))    }
@@ -38,9 +44,9 @@ val appModule = module {
 //    single { AnalyticsBuffer(get(),get()) }
 }
 
-//private fun provideBufferWriterAnalytics(loggyContext: LoggyContext): BufferWriter {
-//    return BufferWriterImpl(loggyContext,ReportType.ANALYTIC)
-//}
+private fun provideLoggyFileListState(loggyFileList: LoggyFileList): LoggyFileListState {
+    return loggyFileList.state
+}
 //private fun provideBufferWriterLogcat(loggyContext: LoggyContext): BufferWriter {
 //    return BufferWriterImpl(loggyContext,ReportType.REGULAR)
 //}

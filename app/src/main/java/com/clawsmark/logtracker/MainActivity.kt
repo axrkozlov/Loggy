@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
             fileUploader!!.cancel()
             pDialog!!.dismiss() //dismiss dialog
         }
-        trace("asdf","asdf")
+        trace("asdf", "asdf")
         findViewById<View>(R.id.btnSelectFiles).setOnClickListener {
             Loggy.startSending()
 //            LogSender.startSending()
@@ -52,20 +52,25 @@ class MainActivity : AppCompatActivity() {
 //                intent.action = Intent.ACTION_GET_CONTENT
 //                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1)
 //            }
-//            CoroutineScope(Job()).launch (Dispatchers.IO){
-//                for (i in 1..10_000) {
-//                    trace("SOME","Message $i")
-//                    if (i==500)throw Exception("rerere")
-//                    delay(10)
-//                }
-//
-//            }
+
 
         }
         findViewById<View>(R.id.btnStop).setOnClickListener {
             Loggy.stopSending()
             Log.i("MainActivity", "onCreate: ")
-            
+
+        }
+        findViewById<View>(R.id.btngenerateLog).setOnClickListener {
+            Loggy.stopSending()
+            CoroutineScope(Job()).launch(Dispatchers.IO) {
+                for (i in 1..10_000) {
+                    trace("SOME", "Message $i")
+//                    if (i == 500) throw Exception("rerere")
+                    delay(10)
+                }
+
+            }
+
         }
     }
 

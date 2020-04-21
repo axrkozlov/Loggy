@@ -10,22 +10,21 @@ import java.io.File
 
 class LoggySender(override val context: LoggyContext, private val analyticsFileList: LoggyFileList, val logcatFileList: LoggyFileList) : LoggyComponent {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
     private var sentLogNames = mutableListOf<String>()
-    private var listMustBeSent = mutableListOf<File>()
 
     init {
         register()
     }
 
-    private fun updateSendingFileList() {
+    private fun getSendingFileList():MutableList<File> {
         val allLogs = mutableListOf<File>()
         allLogs.addAll(analyticsFileList.list)
         allLogs.addAll(logcatFileList.list)
         allLogs.sortBy { it.lastModified() }
-        listMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }.toMutableList()
         val allLogsNames = allLogs.map { file -> file.nameWithoutExtension }
+        val listMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }.toMutableList()
         sentLogNames.retainAll { allLogsNames.contains(it) }
+        return listMustBeSent
 //        Log.i("LogSender", "allLogs: $allLogs")
 //        Log.i("LogSender", "logsMustBeSent: $logsMustBeSent")
 //        Log.i("LogSender", "sentLogNames: $sentLogNames")
@@ -36,12 +35,12 @@ class LoggySender(override val context: LoggyContext, private val analyticsFileL
     var job: Job? = null
 
     fun startSending() {
-        updateSendingFileList()
-        job = coroutineScope.launch {
+        val list = getSendingFileList()
+        job = CoroutineScope(Dispatchers.IO + Job()).launch {
             isRunning = true
-            while (isRunning && listMustBeSent.isNotEmpty()) {
-                send(listMustBeSent[0])
-                listMustBeSent.removeAt(0)
+            while (isRunning && list.isNotEmpty()) {
+                send(list[0])
+                list.removeAt(0)
             }
         }
     }
