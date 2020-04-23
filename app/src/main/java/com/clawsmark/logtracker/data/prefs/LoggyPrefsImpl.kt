@@ -42,7 +42,7 @@ class LoggyPrefsImpl(val preferences: SharedPreferences) : LoggyPrefs {
         get() = 8192
 
     override val maxFileSizeKb: Int
-        get() = 256
+        get() = 64
     override val dirSizeMb: Int
         get() = 4
     override val maxDirSizeMb: Int

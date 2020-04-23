@@ -17,7 +17,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 
-class FileUploader {
+class _FileUploader {
     var fileUploaderCallback: FileUploaderCallback? = null
     private lateinit var files: Array<File?>
     var uploadIndex = -1

@@ -98,7 +98,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     }
 
 
-    fun writeBufferToFile(buffer: Buffer) {
+    private fun writeBufferToFile(buffer: Buffer) {
         closeFile()
         openFile()
         writeMessages(buffer)

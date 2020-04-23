@@ -11,7 +11,9 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 class LoggyFileList(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent {
 
-    private val updateEvent = object : Observable() {}
+    private val updateEvent = object : Observable() {
+        override fun hasChanged(): Boolean = true
+    }
 
     private val isOverflown: Boolean
         get() {

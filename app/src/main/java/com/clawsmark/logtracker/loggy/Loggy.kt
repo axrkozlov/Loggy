@@ -11,19 +11,13 @@ import com.clawsmark.logtracker.data.userinteraction.UserInteractionObserver
 import org.koin.core.KoinComponent
 import org.koin.core.get
 
-object Loggy : LoggyComponent, KoinComponent, UserInteractionObserver {
+object Loggy : LoggyComponent, KoinComponent {
     private var logcatBuffer: LogcatBuffer = get()
     override val context: LoggyContext = get()
     private var analyticsBuffer: AnalyticsBuffer = get()
     private val loggySender: LoggySender = get()
 
-    override fun onInteraction() {
-        stopSending()
-    }
 
-    override fun onIdle() {
-        startSending()
-    }
 
     init {
         register()

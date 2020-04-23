@@ -17,6 +17,7 @@ import com.clawsmark.logtracker.data.writer.BufferWriter
 import com.clawsmark.logtracker.data.writer.BufferWriterImpl
 import com.clawsmark.logtracker.data.context.LoggyContext
 import com.clawsmark.logtracker.data.context.LoggyContextImpl
+import com.clawsmark.logtracker.data.sender.LoggyUploader
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -25,7 +26,6 @@ val appModule = module {
     single { provideSharedPreferences(androidContext()) }
     single<LoggyPrefs> { LoggyPrefsImpl(get()) }
     single<LoggyContext> { LoggyContextImpl(get()) }
-
 
     single<LoggyFileList>(named("analyticsFileList")) { LoggyFileList(get(), ReportType.ANALYTIC) }
     single<LoggyFileList>(named("logcatFileList")) { LoggyFileList(get(), ReportType.REGULAR) }
@@ -36,7 +36,8 @@ val appModule = module {
     single { AnalyticsBuffer(get(), get(named("analyticsBufferWriter"))) }
     single<BufferWriter>(named("logcatBufferWriter")) { BufferWriterImpl(get(), ReportType.REGULAR, get(named("logcatFileListState"))) }
     single { LogcatBuffer(get(), get(named("logcatBufferWriter"))) }
-    single { LoggySender(get(), get(named("analyticsFileList")), get(named("logcatFileList"))) }
+    single { LoggyUploader() }
+    single { LoggySender(get(),get(), get(named("analyticsFileList")), get(named("logcatFileList"))) }
 
     single<UserInteractionDispatcher> { PeriodicCheckIdleDispatcher() }
 

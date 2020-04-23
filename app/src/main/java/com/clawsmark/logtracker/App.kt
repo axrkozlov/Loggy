@@ -33,11 +33,15 @@ class App : Application() {
         val userInteractionDispatcher = get<UserInteractionDispatcher>()
         userInteractionDispatcher.addObserver(object:UserInteractionObserver{
             override fun onInteraction() {
-                Loggy.startSending()
+                Loggy.stopSending()
+                Log.i("App", "onInteraction: Loggy.stopSending")
+
             }
 
             override fun onIdle() {
-                Loggy.stopSending()
+                Loggy.startSending()
+                Log.i("App", "onIdle: Loggy.startSending")
+
             }
 
         })
