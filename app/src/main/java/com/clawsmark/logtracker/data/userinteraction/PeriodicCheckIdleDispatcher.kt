@@ -3,7 +3,7 @@ package com.clawsmark.logtracker.data.userinteraction
 import android.os.Handler
 import android.os.Looper
 
-class PeriodicCheckIdleDispatcher(private val period: Long = 60000, private val timeForIsIdle:Long = 60000) : UserInteractionDispatcher() {
+class PeriodicCheckIdleDispatcher(private val period: Long = 20000, private val timeForIsIdle:Long = 20000) : UserInteractionDispatcher() {
     var isIdle = false
         private set
     private var lastInteractionTime: Long = currentMillis
@@ -19,11 +19,14 @@ class PeriodicCheckIdleDispatcher(private val period: Long = 60000, private val 
 
     init {
         onInteraction()
-        periodicCheckRunnable
+        periodicCheckRunnable.invoke()
     }
 
     private fun checkIsIdle() {
-        if (!isIdle && currentMillis - lastInteractionTime > timeForIsIdle) dispatchIdle()
+        if (!isIdle && currentMillis - lastInteractionTime > timeForIsIdle) {
+            isIdle = true
+            dispatchIdle()
+        }
     }
 
     private val observers = mutableSetOf<UserInteractionObserver>()
@@ -49,7 +52,6 @@ class PeriodicCheckIdleDispatcher(private val period: Long = 60000, private val 
     }
 
     override fun dispatchIdle() {
-        isIdle = true
         observers.forEach {
             it.onIdle()
         }
