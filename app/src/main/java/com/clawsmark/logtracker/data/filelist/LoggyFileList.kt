@@ -1,17 +1,24 @@
-package com.clawsmark.logtracker.data.services.logfilemanager
+package com.clawsmark.logtracker.data.filelist
 
-import com.clawsmark.logtracker.data.ReportType
-import com.clawsmark.logtracker.loggy.LoggyComponent
-import com.clawsmark.logtracker.loggy.LoggyContext
+import android.util.Log
+import com.clawsmark.logtracker.data.report.ReportType
+import com.clawsmark.logtracker.data.LoggyComponent
+import com.clawsmark.logtracker.data.context.LoggyContext
 import kotlinx.coroutines.*
 import java.io.*
+import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 class LoggyFileList(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent {
 
+    private val updateEvent = object : Observable() {}
 
     private val isOverflown: Boolean
-        get() = size > maxSizeBytes
+        get() {
+            val value = size > maxSizeBytes
+            if (value) Log.i("LoggyFileList", "${dir.canonicalPath} is overflown!")
+            return value
+        }
 
     override val componentName: String
         get() = super.componentName + reportType
@@ -44,6 +51,7 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
                         .sortedBy { it.lastModified() }
                 )
                 measure()
+                updateEvent.notifyObservers()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
@@ -106,6 +114,14 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
 
         override val isNotOverflown: Boolean
             get() = !this@LoggyFileList.isOverflown
+    }
+
+    fun subscribeUpdates(observer: Observer) {
+        updateEvent.addObserver(observer)
+    }
+
+    fun unsubscribeUpdates(observer: Observer) {
+        updateEvent.deleteObserver(observer)
     }
 
 }

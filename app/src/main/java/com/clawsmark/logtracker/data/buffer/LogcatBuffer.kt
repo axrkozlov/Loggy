@@ -2,10 +2,10 @@ package com.clawsmark.logtracker.data.buffer
 
 
 import com.clawsmark.logtracker.data.writer.BufferWriter
-import com.clawsmark.logtracker.data.LogcatMessage
-import com.clawsmark.logtracker.data.Message
-import com.clawsmark.logtracker.loggy.LoggyComponent
-import com.clawsmark.logtracker.loggy.LoggyContext
+import com.clawsmark.logtracker.data.message.LogcatMessage
+import com.clawsmark.logtracker.data.message.Message
+import com.clawsmark.logtracker.data.LoggyComponent
+import com.clawsmark.logtracker.data.context.LoggyContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,8 +13,6 @@ import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.max
-import kotlin.math.min
 
 class LogcatBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : LoggyComponent, Buffer() {
 

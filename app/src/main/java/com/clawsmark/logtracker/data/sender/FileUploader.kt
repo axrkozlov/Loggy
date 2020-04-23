@@ -1,4 +1,4 @@
-package com.clawsmark.logtracker.api
+package com.clawsmark.logtracker.data.sender
 
 import android.content.ContentValues
 import android.os.Handler
@@ -62,7 +62,7 @@ class FileUploader {
         @Throws(IOException::class)
         override fun writeTo(sink: BufferedSink) {
             val fileLength = mFile!!.length()
-            val buffer = ByteArray(Companion.DEFAULT_BUFFER_SIZE)
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
             val `in` = FileInputStream(mFile)
             var uploaded: Long = 0
             try {

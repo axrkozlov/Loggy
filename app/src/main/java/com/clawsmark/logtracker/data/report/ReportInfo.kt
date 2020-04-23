@@ -1,7 +1,6 @@
-package com.clawsmark.logtracker.data
+package com.clawsmark.logtracker.data.report
 
 import com.google.gson.Gson
-import java.lang.Exception
 import java.util.*
 
 data class ReportInfo (
@@ -9,7 +8,7 @@ data class ReportInfo (
         val serialNumber:String,
         val terminalId:String,
         val time:String,
-        val causeExceptionInfo:CauseExceptionInfo? = null
+        val causeExceptionInfo: CauseExceptionInfo? = null
 ){
     fun toJson(): String = Gson().toJson(this)
 }

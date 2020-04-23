@@ -9,11 +9,13 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.clawsmark.logtracker.api.FileUploader
-import com.clawsmark.logtracker.api.FileUploader.FileUploaderCallback
+import com.clawsmark.logtracker.data.sender.FileUploader
+import com.clawsmark.logtracker.data.sender.FileUploader.FileUploaderCallback
+import com.clawsmark.logtracker.data.userinteraction.UserInteractionDispatcher
 import com.clawsmark.logtracker.loggy.Loggy
 import com.clawsmark.logtracker.utils.trace
 import kotlinx.coroutines.*
+import org.koin.android.ext.android.get
 import java.io.File
 import java.util.*
 
@@ -21,6 +23,8 @@ class MainActivity : AppCompatActivity() {
     var files = ArrayList<String>()
     private var pDialog: ProgressDialog? = null
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
+
+    val userInteractionDispatcher = get<UserInteractionDispatcher>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,14 +68,22 @@ class MainActivity : AppCompatActivity() {
             Loggy.stopSending()
             CoroutineScope(Job()).launch(Dispatchers.IO) {
                 for (i in 1..10_000) {
-                    trace("SOME", "Message $i")
+                    trace("SOME", "Message\n $i")
+                    Log.i("MainActivity", "onCreate: \n someinfo $i \n")
+
 //                    if (i == 500) throw Exception("rerere")
-                    delay(10)
+                    delay(2)
                 }
 
             }
 
         }
+    }
+
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        userInteractionDispatcher.onInteraction()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -1,4 +1,4 @@
-package com.clawsmark.logtracker.data
+package com.clawsmark.logtracker.data.report
 
 enum class ReportType{
     REGULAR,

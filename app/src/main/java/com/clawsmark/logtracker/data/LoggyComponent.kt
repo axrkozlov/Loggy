@@ -1,4 +1,6 @@
-package com.clawsmark.logtracker.loggy
+package com.clawsmark.logtracker.data
+
+import com.clawsmark.logtracker.data.context.LoggyContext
 
 interface LoggyComponent {
 
@@ -7,9 +9,6 @@ interface LoggyComponent {
         get() = this::class.java.simpleName
 
     fun onPrefsUpdated()
-    fun onFail() {
-        context.onComponentFail(this)
-    }
 
     val prefs get() = context.prefs
     fun register(){

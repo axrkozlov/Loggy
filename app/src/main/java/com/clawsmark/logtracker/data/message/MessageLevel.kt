@@ -1,4 +1,4 @@
-package com.clawsmark.logtracker.data
+package com.clawsmark.logtracker.data.message
 
 enum class MessageLevel(val value: String) {
     INFO("I"),

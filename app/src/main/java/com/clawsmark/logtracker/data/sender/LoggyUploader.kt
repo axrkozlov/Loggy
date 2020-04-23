@@ -1,9 +1,8 @@
-package com.clawsmark.logtracker.data.services.fileiouploader
+package com.clawsmark.logtracker.data.sender
 
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.clawsmark.logtracker.api.FileioClient
 import com.google.gson.JsonElement
 import kotlinx.coroutines.*
 import okhttp3.MediaType
@@ -17,14 +16,12 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 
-class FileioUploader {
-    private lateinit var files: Array<File?>
-    var uploadIndex = -1
-    private var uploadURL = "/"
+class LoggyUploader {
+
 
     //    private var totalFileLength: Long = 0
     private var totalFileUploaded: Long = 0
-    private var filekey = "file"
+    private var filekey = "uploadedFile"
     private val uploadInterface: UploadInterface
     private var auth_token = ""
     private lateinit var responses: Array<String?>
@@ -37,12 +34,12 @@ class FileioUploader {
 
     private interface UploadInterface {
         @Multipart
-        @POST("/")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Response<FileIoResponse>
+        @POST("v01/Logs/UploadOrgFile")
+        suspend fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Response<Void?>
 
         @Multipart
-        @POST("/")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?): Response<FileIoResponse>
+        @POST("v01/Logs/UploadOrgFile")
+        suspend fun uploadFile(@Part file: MultipartBody.Part?): Response<Void?>
     }
 
     inner class PRRequestBody(private val mFile: File?) : RequestBody() {
@@ -86,7 +83,6 @@ class FileioUploader {
         val fileBody = PRRequestBody(file)
         val filePart = MultipartBody.Part.createFormData(filekey, file.name, fileBody)
 
-        Log.i("LogUploader", "uploadSingleFile: $uploadURL, $auth_token")
         try {
             val response = if (auth_token.isEmpty()) {
                 safeApiCall {
@@ -109,31 +105,26 @@ class FileioUploader {
 
 
     init {
-        uploadInterface = FileioClient.client.create(UploadInterface::class.java)
+        uploadInterface = ApiClient.client.create(UploadInterface::class.java)
     }
 
     companion object {
         private const val DEFAULT_BUFFER_SIZE = 2048
     }
 
-    suspend fun <T : Any> safeApiCall(call: suspend () -> Response<T>): Result<T> {
+    suspend fun <T : Any> safeApiCall(call: suspend () -> Response<T?>): Result<T?> {
         try {
             val response = call()
             if (response.isSuccessful)
-                return Result.Success(response.body()!!)
+                return Result.Success(response.body())
             return Result.Error(IOException("Error Occurred during getting safe Api result"))
         } catch (e: Exception) {
             return Result.Error(e)
         }
     }
-    data class FileIoResponse(
-            val success:Boolean,
-            val key:String,
-            val link:String,
-            val expiry:String
-    )
-    sealed  class Result<out T: Any> {
-        data class Success<out T : Any>(val data: T) : Result<T>()
+
+    sealed  class Result<out T: Any?> {
+        data class Success<out T : Any?>(val data: T?) : Result<T?>()
         data class Error(val exception: Exception) : Result<Nothing>()
     }
 }

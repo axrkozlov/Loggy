@@ -1,4 +1,4 @@
-package com.clawsmark.logtracker.data.services.prefs
+package com.clawsmark.logtracker.data.prefs
 
 import android.content.SharedPreferences
 import android.os.Environment
@@ -11,6 +11,14 @@ class LoggyPrefsImpl(val preferences: SharedPreferences) : LoggyPrefs {
         get() = 256
     override val maxBufferSize: Int
         get() = 10_000
+    override val logLevel: Int
+        get() = 2
+    override val sendingLevel: Int
+        get() = 2
+    override val sendingIntervalMin: Long
+        get() = 0
+    override val pauseBetweenFileSendingSec: Long
+        get() = 1000
 
 
     override val timeBeforeStartSendingSeconds: Int
@@ -43,14 +51,9 @@ class LoggyPrefsImpl(val preferences: SharedPreferences) : LoggyPrefs {
     override val loggyPath = "${sdCard.absolutePath}/loggy"
     override val logcatPath: String= "$loggyPath/logcat"
     override val analyticsPath: String = "$loggyPath/analytics"
-    override val analyticsFileNameFormat: String
-        get() = "%s"
-    override val logcatFileNameFormat: String
-        get() = "%s"
-    override val serialNumber: String
-        get() = "1234567890"
-    override val terminalId: String
-        get() = "31007579"
+
+
+
 //    var level = 1
 //        set(value) {
 //            if (value >= 2) isLogcatEnabled = true

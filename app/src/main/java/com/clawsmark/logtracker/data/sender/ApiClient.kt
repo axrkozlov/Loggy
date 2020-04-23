@@ -1,4 +1,4 @@
-package com.clawsmark.logtracker.api
+package com.clawsmark.logtracker.data.sender
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

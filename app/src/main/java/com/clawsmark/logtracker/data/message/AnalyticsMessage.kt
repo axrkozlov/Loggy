@@ -1,8 +1,8 @@
-package com.clawsmark.logtracker.data
+package com.clawsmark.logtracker.data.message
 
 import com.clawsmark.logtracker.utils.currentLogMessageTime
 
-class AnalyticsMessage(val tag: String, val message: String, val messageLevel:MessageLevel):Message {
+class AnalyticsMessage(val tag: String, val message: String, val messageLevel: MessageLevel): Message {
     private val time = currentLogMessageTime()
     override val content: String
         get() = "\"$time ${messageLevel.value}/$tag: $message\""

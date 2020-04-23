@@ -1,4 +1,4 @@
-package com.clawsmark.logtracker.data.services.logfilemanager
+package com.clawsmark.logtracker.data.filelist
 
 interface LoggyFileListState {
     fun update()

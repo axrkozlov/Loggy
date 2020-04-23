@@ -3,18 +3,20 @@ package com.clawsmark.logtracker.di
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import com.clawsmark.logtracker.data.ReportType
+import com.clawsmark.logtracker.data.report.ReportType
 import com.clawsmark.logtracker.data.buffer.AnalyticsBuffer
 import com.clawsmark.logtracker.data.buffer.LogcatBuffer
-import com.clawsmark.logtracker.data.services.logfilemanager.LoggyFileList
-import com.clawsmark.logtracker.data.services.logfilemanager.LoggyFileListState
-import com.clawsmark.logtracker.data.services.logsender.LoggySender
-import com.clawsmark.logtracker.data.services.prefs.LoggyPrefs
-import com.clawsmark.logtracker.data.services.prefs.LoggyPrefsImpl
+import com.clawsmark.logtracker.data.filelist.LoggyFileList
+import com.clawsmark.logtracker.data.filelist.LoggyFileListState
+import com.clawsmark.logtracker.data.sender.LoggySender
+import com.clawsmark.logtracker.data.prefs.LoggyPrefs
+import com.clawsmark.logtracker.data.prefs.LoggyPrefsImpl
+import com.clawsmark.logtracker.data.userinteraction.PeriodicCheckIdleDispatcher
+import com.clawsmark.logtracker.data.userinteraction.UserInteractionDispatcher
 import com.clawsmark.logtracker.data.writer.BufferWriter
 import com.clawsmark.logtracker.data.writer.BufferWriterImpl
-import com.clawsmark.logtracker.loggy.LoggyContext
-import com.clawsmark.logtracker.loggy.LoggyContextImpl
+import com.clawsmark.logtracker.data.context.LoggyContext
+import com.clawsmark.logtracker.data.context.LoggyContextImpl
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -35,6 +37,8 @@ val appModule = module {
     single<BufferWriter>(named("logcatBufferWriter")) { BufferWriterImpl(get(), ReportType.REGULAR, get(named("logcatFileListState"))) }
     single { LogcatBuffer(get(), get(named("logcatBufferWriter"))) }
     single { LoggySender(get(), get(named("analyticsFileList")), get(named("logcatFileList"))) }
+
+    single<UserInteractionDispatcher> { PeriodicCheckIdleDispatcher() }
 
 //    single { LogcatBuffer(get(),getProperty("logcatBufferWriter"))    }
 //    factory(named("analyticsBufferWriter")) { BufferWriterImpl(get(),ReportType.ANALYTIC) }

@@ -1,18 +1,30 @@
 package com.clawsmark.logtracker.loggy
 
-import com.clawsmark.logtracker.data.MessageLevel
-import com.clawsmark.logtracker.data.AnalyticsMessage
+import com.clawsmark.logtracker.data.message.MessageLevel
+import com.clawsmark.logtracker.data.message.AnalyticsMessage
 import com.clawsmark.logtracker.data.buffer.AnalyticsBuffer
 import com.clawsmark.logtracker.data.buffer.LogcatBuffer
-import com.clawsmark.logtracker.data.services.logsender.LoggySender
+import com.clawsmark.logtracker.data.LoggyComponent
+import com.clawsmark.logtracker.data.context.LoggyContext
+import com.clawsmark.logtracker.data.sender.LoggySender
+import com.clawsmark.logtracker.data.userinteraction.UserInteractionObserver
 import org.koin.core.KoinComponent
 import org.koin.core.get
 
-object Loggy : LoggyComponent, KoinComponent {
+object Loggy : LoggyComponent, KoinComponent, UserInteractionObserver {
     private var logcatBuffer: LogcatBuffer = get()
     override val context: LoggyContext = get()
     private var analyticsBuffer: AnalyticsBuffer = get()
-    private val loggySender:LoggySender = get()
+    private val loggySender: LoggySender = get()
+
+    override fun onInteraction() {
+        stopSending()
+    }
+
+    override fun onIdle() {
+        startSending()
+    }
+
     init {
         register()
     }
@@ -43,6 +55,14 @@ object Loggy : LoggyComponent, KoinComponent {
 
     fun updatePrefs() = context.updatePrefs()
 
-    fun startSending() = loggySender.startSending()
-    fun stopSending() = loggySender.stopSending()
+    fun startSending(isUrgentlySendingRequest: Boolean = false) {
+        if (context.isSendingEnabled) {
+            loggySender.startSending(isUrgentlySendingRequest)
+        }
+    }
+
+    fun stopSending(isForce: Boolean = false) {
+            loggySender.stopSending(isForce)
+    }
+
 }

@@ -1,9 +1,9 @@
 package com.clawsmark.logtracker.data.buffer
 
 import com.clawsmark.logtracker.data.writer.BufferWriter
-import com.clawsmark.logtracker.data.Message
-import com.clawsmark.logtracker.loggy.LoggyComponent
-import com.clawsmark.logtracker.loggy.LoggyContext
+import com.clawsmark.logtracker.data.message.Message
+import com.clawsmark.logtracker.data.LoggyComponent
+import com.clawsmark.logtracker.data.context.LoggyContext
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class AnalyticsBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : Buffer(), LoggyComponent {

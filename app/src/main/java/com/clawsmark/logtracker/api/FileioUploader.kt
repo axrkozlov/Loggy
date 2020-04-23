@@ -1,9 +1,8 @@
-package com.clawsmark.logtracker.data.services.logsender
+package com.clawsmark.logtracker.api
 
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.clawsmark.logtracker.api.ApiClient
 import com.google.gson.JsonElement
 import kotlinx.coroutines.*
 import okhttp3.MediaType
@@ -17,12 +16,14 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 
-class LoggyUploader {
-
+class FileioUploader {
+    private lateinit var files: Array<File?>
+    var uploadIndex = -1
+    private var uploadURL = "/"
 
     //    private var totalFileLength: Long = 0
     private var totalFileUploaded: Long = 0
-    private var filekey = "uploadedFile"
+    private var filekey = "file"
     private val uploadInterface: UploadInterface
     private var auth_token = ""
     private lateinit var responses: Array<String?>
@@ -35,12 +36,12 @@ class LoggyUploader {
 
     private interface UploadInterface {
         @Multipart
-        @POST("v01/Logs/UploadOrgFile")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Response<Void?>
+        @POST("/")
+        suspend fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Response<FileIoResponse>
 
         @Multipart
-        @POST("v01/Logs/UploadOrgFile")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?): Response<Void?>
+        @POST("/")
+        suspend fun uploadFile(@Part file: MultipartBody.Part?): Response<FileIoResponse>
     }
 
     inner class PRRequestBody(private val mFile: File?) : RequestBody() {
@@ -84,6 +85,7 @@ class LoggyUploader {
         val fileBody = PRRequestBody(file)
         val filePart = MultipartBody.Part.createFormData(filekey, file.name, fileBody)
 
+        Log.i("LogUploader", "uploadSingleFile: $uploadURL, $auth_token")
         try {
             val response = if (auth_token.isEmpty()) {
                 safeApiCall {
@@ -106,26 +108,31 @@ class LoggyUploader {
 
 
     init {
-        uploadInterface = ApiClient.client.create(UploadInterface::class.java)
+        uploadInterface = FileioClient.client.create(UploadInterface::class.java)
     }
 
     companion object {
         private const val DEFAULT_BUFFER_SIZE = 2048
     }
 
-    suspend fun <T : Any> safeApiCall(call: suspend () -> Response<T?>): Result<T?> {
+    suspend fun <T : Any> safeApiCall(call: suspend () -> Response<T>): Result<T> {
         try {
             val response = call()
             if (response.isSuccessful)
-                return Result.Success(response.body())
+                return Result.Success(response.body()!!)
             return Result.Error(IOException("Error Occurred during getting safe Api result"))
         } catch (e: Exception) {
             return Result.Error(e)
         }
     }
-
-    sealed  class Result<out T: Any?> {
-        data class Success<out T : Any?>(val data: T?) : Result<T?>()
+    data class FileIoResponse(
+            val success:Boolean,
+            val key:String,
+            val link:String,
+            val expiry:String
+    )
+    sealed  class Result<out T: Any> {
+        data class Success<out T : Any>(val data: T) : Result<T>()
         data class Error(val exception: Exception) : Result<Nothing>()
     }
 }

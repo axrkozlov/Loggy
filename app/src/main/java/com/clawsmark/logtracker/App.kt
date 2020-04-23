@@ -2,9 +2,12 @@ package com.clawsmark.logtracker
 
 import android.app.Application
 import android.util.Log
+import com.clawsmark.logtracker.data.userinteraction.UserInteractionDispatcher
+import com.clawsmark.logtracker.data.userinteraction.UserInteractionObserver
 import com.clawsmark.logtracker.di.appModule
 import com.clawsmark.logtracker.loggy.Loggy
 import com.clawsmark.logtracker.utils.trace
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -22,11 +25,22 @@ class App : Application() {
 
         Loggy.context.logLevel = 3
         Loggy.updatePrefs()
-        for (i in 1..1000) {
-            Log.i("App", "onCreate: ")
-            
-            
-        }
+//        for (i in 1..1000) {
+//            Log.i("App", "onCreate: ")
+//
+//
+//        }
+        val userInteractionDispatcher = get<UserInteractionDispatcher>()
+        userInteractionDispatcher.addObserver(object:UserInteractionObserver{
+            override fun onInteraction() {
+                Loggy.startSending()
+            }
+
+            override fun onIdle() {
+                Loggy.stopSending()
+            }
+
+        })
 
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->

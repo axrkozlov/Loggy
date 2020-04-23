@@ -3,13 +3,13 @@ package com.clawsmark.logtracker.data.writer
 import android.os.Environment
 import android.os.StatFs
 import android.util.Log
-import com.clawsmark.logtracker.data.ReportInfo
-import com.clawsmark.logtracker.data.CauseExceptionInfo
-import com.clawsmark.logtracker.data.ReportType
+import com.clawsmark.logtracker.data.report.ReportInfo
+import com.clawsmark.logtracker.data.report.CauseExceptionInfo
+import com.clawsmark.logtracker.data.report.ReportType
 import com.clawsmark.logtracker.data.buffer.Buffer
-import com.clawsmark.logtracker.data.services.logfilemanager.LoggyFileListState
-import com.clawsmark.logtracker.loggy.LoggyComponent
-import com.clawsmark.logtracker.loggy.LoggyContext
+import com.clawsmark.logtracker.data.filelist.LoggyFileListState
+import com.clawsmark.logtracker.data.LoggyComponent
+import com.clawsmark.logtracker.data.context.LoggyContext
 import com.clawsmark.logtracker.utils.currentLogFinalTime
 import kotlinx.coroutines.*
 import java.io.File
@@ -23,7 +23,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     override val componentName: String
         get() = super.componentName + reportType
 
-    private val path: String = if (reportType==ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
+    private val path: String = if (reportType== ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
     private val dir = File(path)
     private val tempFileName = "~temp.txt"
 
@@ -40,7 +40,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     private var isFatal: Boolean = false
 
     private val hasEnoughMemory: Boolean
-        get() = StatFs(Environment.getExternalStorageDirectory().path).availableBytes > context.minAvailableMemoryBytes
+        get() = context.hasEnoughMemory
 
     init {
         register()
@@ -60,7 +60,6 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         this.causeThrowable = causeThrowable
         this.isFatal = isFatal
         if (hasEnoughMemory && loggyFileListState.isNotOverflown) writeBuffer(buffer)
-        else context.hasNoEnoughMemory
     }
 
     var writingJob : Job? = null
@@ -164,7 +163,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         osw!!.write("\"\"],\n")
         var causeExceptionInfo: CauseExceptionInfo? =null
         causeThrowable?.let {
-            causeExceptionInfo=CauseExceptionInfo(
+            causeExceptionInfo= CauseExceptionInfo(
                     causeThrowable!!.toString(),
                     exceptionId!!,
                     isFatal)
@@ -177,7 +176,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
                 causeExceptionInfo
         )
         osw!!.write("\"reportInfo\":${reportInfo.toJson()}")
-        osw!!.write("}")
+        osw!!.write("}\n")
         closeFile()
         renameFile()
     }
@@ -190,8 +189,8 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
     }
 
     override fun onPrefsUpdated() {
-        serialNumber = prefs.serialNumber
-        terminalId = prefs.terminalId
+        serialNumber = context.serialNumber
+        terminalId = context.terminalId
     }
 
 
