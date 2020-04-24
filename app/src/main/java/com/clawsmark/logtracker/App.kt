@@ -48,7 +48,7 @@ class App : Application() {
 
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->
-            Loggy.log(e,true)
+            Loggy.dump(e,true)
             defaultHandler.uncaughtException(t, e)
         }
 

@@ -11,20 +11,11 @@ import com.clawsmark.logtracker.data.userinteraction.UserInteractionObserver
 import org.koin.core.KoinComponent
 import org.koin.core.get
 
-object Loggy : LoggyComponent, KoinComponent {
+object Loggy : KoinComponent {
     private var logcatBuffer: LogcatBuffer = get()
-    override val context: LoggyContext = get()
+    val context: LoggyContext = get()
     private var analyticsBuffer: AnalyticsBuffer = get()
     private val loggySender: LoggySender = get()
-
-
-
-    init {
-        register()
-    }
-
-    override fun onPrefsUpdated() {
-    }
 
     fun log(tag: String, message: String, messageLevel: MessageLevel) {
         if (context.isAnalyticsEnabled) analyticsBuffer.push(AnalyticsMessage(tag, message, messageLevel))
@@ -42,7 +33,7 @@ object Loggy : LoggyComponent, KoinComponent {
         if (context.isAnalyticsEnabled) analyticsBuffer.push(AnalyticsMessage(tag, message, MessageLevel.ERROR))
     }
 
-    fun log(throwable: Throwable, isFatal: Boolean = false) {
+    fun dump(throwable: Throwable, isFatal: Boolean = false) {
         if (context.isAnalyticsEnabled) analyticsBuffer.save(throwable, isFatal)
         if (context.isLogcatCrashEnabled) logcatBuffer.save(throwable, isFatal)
     }

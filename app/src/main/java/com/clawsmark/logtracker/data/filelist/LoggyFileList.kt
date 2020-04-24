@@ -35,6 +35,7 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
     private var maxSizeBytes: Int = 4_194_304
 
     val list = CopyOnWriteArrayList<File>()
+    private val oldList = ArrayList<File>()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
     var size: Long = 0
@@ -52,8 +53,10 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
                         .filter { it.name.endsWith(".log") }
                         .sortedBy { it.lastModified() }
                 )
+                if (!oldList.containsAll(list)) updateEvent.notifyObservers()
+                oldList.clear()
+                oldList.addAll(list)
                 measure()
-                updateEvent.notifyObservers()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
@@ -63,16 +66,6 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
         }
     }
 
-//    var lockedFile: File? = null
-//    var fileMustBeDeleted : File? = null
-//    fun lockFileWhileReading(file: File) {
-//        lockedFile = file
-//    }
-//
-//    fun unLockFile() {
-//        lockedFile = null
-//    }
-
     private fun deleteFileFromDir(file: File) {
         file.delete()
         if (!file.exists()) {
@@ -81,12 +74,6 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
             throw Exception("File ${file.name} was not deleted from directory $path")
         }
     }
-//
-//    private fun deleteFileFromDir(fileName: String) {
-//        list.forEach {
-//            if (it.name == fileName) deleteFileFromDir(it)
-//        }
-//    }
 
     private fun cropToSize() {
         if (size > limitSizeBytes && list.size > 0) {

@@ -11,11 +11,18 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.lang.Runnable
 import java.util.Observer
+import java.util.concurrent.CopyOnWriteArrayList
 
 
-class LoggySender(override val context: LoggyContext, private val loggyUploader: LoggyUploader, private val analyticsFileList: LoggyFileList, private val logcatFileList: LoggyFileList) : LoggyComponent {
+class LoggySender(
+        override val context: LoggyContext,
+        private val loggyUploader: LoggyUploader,
+        private val sentNamesHolder: SentNamesHolder,
+        private val analyticsFileList: LoggyFileList,
+        private val logcatFileList: LoggyFileList) : LoggyComponent {
 
-    private var sentLogNames = mutableListOf<String>()
+    private val sendingFiles = CopyOnWriteArrayList<File>()
+    private var sentLogNames = mutableSetOf<String>()
     private var sendErrorLogNames = mutableListOf<String>()
     var sentCount = 0
 
@@ -28,27 +35,27 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
     private val isSendingWhenFileListUpdated: Boolean
         get() = sendingInterval <= 0
     private var pauseBetweenFileSending: Long = 1000
-    private var isSendingDeferred = false
     private var isSendingUrgent = false
 
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     private var sendingJob: Job? = null
-    private val completionHandler: CompletionHandler = { onCompleteSending(it) }
 
     init {
+        loadSentNames()
         register()
     }
 
-    private fun getSendingFileList(): MutableList<File> {
+    private fun updateSendingFileList() {
         val allLogs = mutableListOf<File>()
         allLogs.addAll(analyticsFileList.list)
         allLogs.addAll(logcatFileList.list)
         allLogs.sortBy { it.lastModified() }
         val allLogsNames = allLogs.map { file -> file.nameWithoutExtension }
         val listMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }.toMutableList()
+        sendingFiles.retainAll(listMustBeSent)
+        sendingFiles.addAllAbsent(listMustBeSent)
         sentLogNames.retainAll { allLogsNames.contains(it) }
-        sendErrorLogNames.clear()
-        return listMustBeSent
+
     }
 
 
@@ -58,12 +65,10 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
             Log.i("LoggySender", "startSending: urgently sending started")
         }
         isActive = true
-        sendingJob=sendFiles()
-        sendingJob?.invokeOnCompletion(completionHandler)
+        sendingJob = sendFiles()
     }
 
-    var isUrgentlySendingRequested = false
-
+    private var isUrgentlySendingRequested = false
 
     fun stopSending(isForce: Boolean) {
         if ((isUrgentlySendingRequested || isSendingUrgent) && !isForce) {
@@ -74,18 +79,23 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
         sendingJob?.cancel()
     }
 
-    private fun sendFiles() = coroutineScope.launch {
-        coroutineScope {
+    private fun sendFiles(): Job {
+        if (sendingJob != null) return sendingJob!!
+        val job = coroutineScope.launch {
+            updateSendingFileList()
+            sendErrorLogNames.clear()
             isSendingInProgress = true
-            val list = getSendingFileList()
             sentCount = 0
-            while (isActive && list.isNotEmpty()) {
-                sendFile(list[0])
-                list.removeAt(0)
-                delay(1000)
+            while (isActive && sendingFiles.isNotEmpty()) {
+                sendFile(sendingFiles[0])
+                sendingFiles.removeAt(0)
+                delay(pauseBetweenFileSending)
             }
             isSendingInProgress = false
+
         }
+        job.invokeOnCompletion { onCompleteSending(it) }
+        return job
     }
 
     private suspend fun sendFile(file: File) {
@@ -105,6 +115,7 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
     }
 
     private fun onCompleteSending(throwable: Throwable?) {
+        sendingJob = null
         isSendingInProgress = false
         isUrgentlySendingRequested = false
         val resultText = when {
@@ -113,6 +124,15 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
             else -> "successfully"
         }
         Log.i("LoggySender", "onCompleteSending: Sending completed $resultText. Sent $sentCount file(s).")
+        saveSentNames()
+    }
+
+    private fun saveSentNames(){
+        sentNamesHolder.save(sentLogNames)
+    }
+
+    private fun loadSentNames(){
+        sentLogNames = sentNamesHolder.load()
     }
 
     override fun onPrefsUpdated() {
@@ -126,12 +146,14 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
         pauseBetweenFileSending = prefs.pauseBetweenFileSendingSec * 1000
         setupUpdateIntervalHandler()
         setupUpdateObserver()
+
     }
 
     private val handler = Handler(Looper.getMainLooper())
     private val sendingPeriodicRunnable: Runnable = Runnable {
         if (sendingInterval > 0) {
             this@LoggySender.addRunnable()
+            updateSendingFileList()
             if (isSendingInProgress || !isActive) return@Runnable
             Log.i("LoggySender", "LoggySender: start sending on interval")
             sendFiles()
@@ -149,6 +171,7 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
 
     private val listUpdateObserver by lazy {
         Observer { _, _ ->
+            updateSendingFileList()
             if (isSendingInProgress || !isActive) return@Observer
             Log.i("LoggySender", "LoggySender: start sending when a file list updated")
             sendFiles()
@@ -163,7 +186,6 @@ class LoggySender(override val context: LoggyContext, private val loggyUploader:
             analyticsFileList.unsubscribeUpdates(listUpdateObserver)
             logcatFileList.unsubscribeUpdates(listUpdateObserver)
         }
-
     }
 
 

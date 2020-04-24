@@ -1,24 +1,31 @@
 package com.clawsmark.logtracker.data.prefs
 
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.os.Environment
+import android.util.Log
+import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
-class LoggyPrefsImpl(val preferences: SharedPreferences) : LoggyPrefs {
+class LoggyPrefsImpl(private val preferences: SharedPreferences) : LoggyPrefs {
     override val bufferBlockSize: Int
         get() = 256
     override val maxBufferSize: Int
         get() = 10_000
     override val logLevel: Int
-        get() = 2
+        get() = 3
     override val sendingLevel: Int
         get() = 2
     override val sendingIntervalMin: Long
         get() = 0
     override val pauseBetweenFileSendingSec: Long
-        get() = 1000
+        get() = 1
 
 
     override val timeBeforeStartSendingSeconds: Int

@@ -25,7 +25,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
 
     private val path: String = if (reportType== ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
     private val dir = File(path)
-    private val tempFileName = "~temp.txt"
+    private val tempFileName = ".temp.txt"
 
     private var serialNumber: String = "12345678901"
     private var terminalId: String = "12345678902"
@@ -102,7 +102,7 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         closeFile()
         openFile()
         writeMessages(buffer)
-        if (isWritingOnExit) finalizeFile()
+        if (causeThrowable != null) finalizeFile()
         closeFile()
     }
 
@@ -164,8 +164,9 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         var causeExceptionInfo: CauseExceptionInfo? =null
         causeThrowable?.let {
             causeExceptionInfo= CauseExceptionInfo(
-                    causeThrowable!!.toString(),
                     exceptionId!!,
+                    it.toString(),
+                    it.stackTrace.toString(),
                     isFatal)
         }
         val reportInfo = ReportInfo(
