@@ -4,9 +4,8 @@ import android.app.Application
 import android.util.Log
 import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
 import com.clawmarks.loggy.userinteraction.UserInteractionObserver
-import com.clawmarks.loggy.di.appModule
 import com.clawmarks.loggy.Loggy
-import com.clawmarks.loggy.uploader.LoggyUploader
+import com.clawmarks.loggy.di.loggyModule
 import com.clawmarks.logtracker.api.LoggyUploaderImpl
 import com.clawmarks.logtracker.utils.trace
 import org.koin.android.ext.android.get
@@ -21,7 +20,7 @@ class App : Application() {
         startKoin {
             androidLogger()
             androidContext(this@App)
-            modules(listOf(appModule))
+            modules(listOf(loggyModule))
         }
 
          Loggy.setComponents(

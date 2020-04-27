@@ -24,7 +24,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-val appModule = module {
+val loggyModule = module {
     single { provideSharedPreferences(androidContext()) }
     single<LoggyContext> { LoggyContextImpl() }
 
