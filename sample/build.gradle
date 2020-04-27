@@ -5,7 +5,7 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.clawsmark.logtracker"
+        applicationId "com.clawmarks.logtracker"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
@@ -39,6 +39,7 @@ dependencies {
     implementation "org.koin:koin-android:$koin"
     implementation "org.koin:koin-androidx-scope:$koin"
     implementation "org.koin:koin-androidx-viewmodel:$koin"
+    implementation project(':loggy')
 }
 repositories {
     mavenCentral()

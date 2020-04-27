@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.clawmarks.loggy.TestClass
 import com.clawmarks.logtracker.data.userinteraction.UserInteractionDispatcher
 import com.clawmarks.logtracker.loggy.Loggy
 import com.clawmarks.logtracker.utils.trace
-import com.clawsmark.logtracker.R
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.get
 import java.util.*
@@ -50,9 +50,9 @@ class MainActivity : AppCompatActivity() {
 
         }
         findViewById<View>(R.id.btnStop).setOnClickListener {
-            Loggy.stopSending()
-            Log.i("MainActivity", "onCreate: ")
-
+//            Loggy.stopSending()
+//            Log.i("MainActivity", "onCreate: ")
+            TestClass().testfun()
         }
         findViewById<View>(R.id.btngenerateLog).setOnClickListener {
             Loggy.stopSending()
