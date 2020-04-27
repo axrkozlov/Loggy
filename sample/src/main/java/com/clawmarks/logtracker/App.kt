@@ -2,10 +2,12 @@ package com.clawmarks.logtracker
 
 import android.app.Application
 import android.util.Log
-import com.clawmarks.logtracker.data.userinteraction.UserInteractionDispatcher
-import com.clawmarks.logtracker.data.userinteraction.UserInteractionObserver
-import com.clawmarks.logtracker.di.appModule
-import com.clawmarks.logtracker.loggy.Loggy
+import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
+import com.clawmarks.loggy.userinteraction.UserInteractionObserver
+import com.clawmarks.loggy.di.appModule
+import com.clawmarks.loggy.Loggy
+import com.clawmarks.loggy.uploader.LoggyUploader
+import com.clawmarks.logtracker.api.LoggyUploaderImpl
 import com.clawmarks.logtracker.utils.trace
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
@@ -21,6 +23,12 @@ class App : Application() {
             androidContext(this@App)
             modules(listOf(appModule))
         }
+
+         Loggy.setComponents(
+                LoggyUploaderImpl(),
+                LoggyPrefsImpl()
+        )
+
         trace(tag, "onCreate")
 
         Loggy.context.logLevel = 3

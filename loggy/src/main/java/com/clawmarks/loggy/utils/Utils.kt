@@ -1,18 +1,18 @@
-package com.clawmarks.logtracker.utils
+package com.clawmarks.loggy.utils
 
 import com.clawmarks.loggy.Loggy
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun trace(tag: String, message: String){
+fun loggy(tag: String, message: String){
     Loggy.i(tag,message)
 }
 
-fun traceWarning(tag: String, message: String){
+fun loggyw(tag: String, message: String){
     Loggy.w(tag,message)
 }
 
-fun traceError(tag: String, message: String){
+fun loggye(tag: String, message: String){
     Loggy.e(tag,message)
 }
 
