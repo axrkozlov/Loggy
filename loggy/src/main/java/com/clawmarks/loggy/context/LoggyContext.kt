@@ -5,7 +5,7 @@ import com.clawmarks.loggy.prefs.LoggyPrefs
 
 interface LoggyContext {
     fun updatePrefs()
-    val prefs: LoggyPrefs
+    var prefs: LoggyPrefs
     var logLevel: Int
     var isAnalyticsEnabled: Boolean
     var isLogcatCrashEnabled: Boolean

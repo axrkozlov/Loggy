@@ -19,11 +19,8 @@ class LoggySender(
         override val context: LoggyContext,
         private val sentNamesHolder: SentNamesHolder,
         private val analyticsFileList: LoggyFileList,
-        private val logcatFileList: LoggyFileList) : LoggyComponent {
-
-
-    private val loggyUploader: LoggyUploader
-        get() = Loggy.loggyUploader
+        private val logcatFileList: LoggyFileList,
+        var loggyUploader: LoggyUploader) : LoggyComponent {
 
     private val sendingFiles = CopyOnWriteArrayList<File>()
     private var sentLogNames = mutableSetOf<String>()

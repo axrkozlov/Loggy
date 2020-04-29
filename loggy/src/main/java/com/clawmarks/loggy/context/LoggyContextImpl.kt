@@ -5,12 +5,11 @@ import android.os.StatFs
 import android.util.Log
 import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.LoggyComponent
+import com.clawmarks.loggy.prefs.LoggyDefaultPrefs
 import com.clawmarks.loggy.prefs.LoggyPrefs
 
-class LoggyContextImpl : LoggyContext {
+class LoggyContextImpl(override var prefs: LoggyPrefs) : LoggyContext {
 
-    override val prefs: LoggyPrefs
-        get() = Loggy.loggyPrefs
     private val components = HashMap<String, LoggyComponent>()
 
     private fun hasFreeSpace() = StatFs(Environment.getExternalStorageDirectory().path).availableBytes < minAvailableMemoryBytes

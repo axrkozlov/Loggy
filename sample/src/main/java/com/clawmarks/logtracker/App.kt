@@ -5,6 +5,7 @@ import android.util.Log
 import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
 import com.clawmarks.loggy.userinteraction.UserInteractionObserver
 import com.clawmarks.loggy.Loggy
+import com.clawmarks.loggy.di.appyModule
 import com.clawmarks.loggy.di.loggyModule
 import com.clawmarks.logtracker.api.LoggyUploaderImpl
 import com.clawmarks.logtracker.utils.trace
@@ -20,17 +21,17 @@ class App : Application() {
         startKoin {
             androidLogger()
             androidContext(this@App)
-            modules(listOf(loggyModule))
+            modules(listOf(appyModule))
         }
 
-         Loggy.setComponents(
+         Loggy.start(
                 LoggyUploaderImpl(),
                 LoggyPrefsImpl()
         )
 
         trace(tag, "onCreate")
 
-        Loggy.context.logLevel = 3
+//        Loggy.context.logLevel = 3
         Loggy.updatePrefs()
 //        for (i in 1..1000) {
 //            Log.i("App", "onCreate: ")
