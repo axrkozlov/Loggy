@@ -4,7 +4,6 @@ import android.util.Log
 import com.clawmarks.loggy.report.ReportType
 import com.clawmarks.loggy.LoggyComponent
 import com.clawmarks.loggy.context.LoggyContext
-import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
@@ -36,23 +35,21 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
 
     val list = CopyOnWriteArrayList<File>()
     private val oldList = ArrayList<File>()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
     var size: Long = 0
-    var sizeInMb: Long = 0
+    val sizeInMb: Long
         get() = size / 1024 / 1024
 
     var isUpdating = false
     fun updateFileList() {
         if (isUpdating) return
         isUpdating = true
-        coroutineScope.launch {
             try {
                 list.clear()
-                list.addAll(dir.listFiles()
-                        .filter { it.name.endsWith(".log") }
-                        .sortedBy { it.lastModified() }
-                )
+                dir.listFiles()
+                        ?.filter { it.name.endsWith(".log") }
+                        ?.sortedBy { it.lastModified() }
+                        ?.let { list.addAll(it) }
                 if (!oldList.containsAll(list)) updateEvent.notifyObservers()
                 oldList.clear()
                 oldList.addAll(list)
@@ -62,8 +59,6 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
             } finally {
                 isUpdating = false
             }
-
-        }
     }
 
     private fun deleteFileFromDir(file: File) {
