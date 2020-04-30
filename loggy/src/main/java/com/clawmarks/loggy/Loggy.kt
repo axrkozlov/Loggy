@@ -77,6 +77,8 @@ class Loggy internal constructor(): LoggyKoinComponent {
                     is LoggyUploader -> instance.loggySender.loggyUploader = it
                 }
             }
+            instance.analyticsBuffer
+            instance.logcatBuffer
             HOLDER.isInitialied = true
         }
 

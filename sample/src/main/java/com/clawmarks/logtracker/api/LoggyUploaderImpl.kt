@@ -12,10 +12,12 @@ import okhttp3.RequestBody
 import okio.BufferedSink
 import retrofit2.Call
 import retrofit2.Response
+import retrofit2.awaitResponse
 import retrofit2.http.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import kotlin.coroutines.suspendCoroutine
 
 class LoggyUploaderImpl: LoggyUploader {
 
@@ -26,21 +28,14 @@ class LoggyUploaderImpl: LoggyUploader {
     private val uploadInterface: UploadInterface
     private var auth_token = ""
     private lateinit var responses: Array<String?>
-    fun cancel() {
-        call!!.cancel()
-    }
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
+    private val coroutineScope = CoroutineScope(Dispatchers.Unconfined + Job())
 
 
     private interface UploadInterface {
         @Multipart
         @POST("v01/Logs/UploadOrgFile")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Response<Void?>
-
-        @Multipart
-        @POST("v01/Logs/UploadOrgFile")
-        suspend fun uploadFile(@Part file: MultipartBody.Part?): Response<Void?>
+        fun uploadFile(@Part file: MultipartBody.Part?): Call<Void?>
     }
 
     inner class PRRequestBody(private val mFile: File?) : RequestBody() {
@@ -80,29 +75,30 @@ class LoggyUploaderImpl: LoggyUploader {
 
 
     var call: Call<JsonElement>? = null
-    override suspend fun uploadSingleFile(file: File, successFunction: (Boolean) -> Unit) = coroutineScope {
-        val fileBody = PRRequestBody(file)
-        val filePart = MultipartBody.Part.createFormData(filekey, file.name, fileBody)
+    override fun uploadSingleFile(file: File) :Boolean {
+        var result = false
+            val fileBody = PRRequestBody(file)
+            val filePart = MultipartBody.Part.createFormData(filekey, file.name, fileBody)
+            try {
+                val response =
+                    safeApiCall (uploadInterface.uploadFile(filePart))
 
-        try {
-            val response = if (auth_token.isEmpty()) {
-                safeApiCall {
-                    uploadInterface.uploadFile(filePart)
-                }
-            } else {
-                safeApiCall {
-                    uploadInterface.uploadFile(filePart, auth_token)
-                }
+
+
+                Log.i("LogUploader", "uploadSingleFile: ${response}")
+                result = response is Result.Success
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
 
-//            val response = call!!.execute()
-            Log.i("LogUploader", "uploadSingleFile: ${response}")
-
-            successFunction.invoke(response is Result.Success)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+       return result
     }
+
+    override fun cancel() {
+        currentCall?.cancel()
+    }
+
+    private var currentCall:Call<*>?=null
 
 
     init {
@@ -113,14 +109,17 @@ class LoggyUploaderImpl: LoggyUploader {
         private const val DEFAULT_BUFFER_SIZE = 2048
     }
 
-    suspend fun <T : Any> safeApiCall(call: suspend () -> Response<T?>): Result<T?> {
+     fun <T : Any> safeApiCall(call: Call<T?>): Result<T?> {
         try {
-            val response = call()
+            currentCall = call
+            val response = call.execute()
             if (response.isSuccessful)
                 return Result.Success(response.body())
             return Result.Error(IOException("Error Occurred during getting safe Api result"))
         } catch (e: Exception) {
             return Result.Error(e)
+        } finally {
+            currentCall=null
         }
     }
 

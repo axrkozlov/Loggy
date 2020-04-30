@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.*
 import java.lang.Exception
+import java.util.concurrent.CopyOnWriteArraySet
 
 class SentNamesHolder(context: LoggyContext) {
 
@@ -33,8 +34,8 @@ class SentNamesHolder(context: LoggyContext) {
         }
     }
 
-    fun load(): MutableSet<String> {
-        val intoSet = mutableSetOf<String>()
+    fun load(): CopyOnWriteArraySet<String> {
+        val intoSet = CopyOnWriteArraySet<String>()
         if (file.exists()) {
             coroutineScope.launch(Dispatchers.IO) {
                 readFile(intoSet)

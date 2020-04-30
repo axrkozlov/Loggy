@@ -13,6 +13,7 @@ import java.io.File
 import java.lang.Runnable
 import java.util.Observer
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 
 
 class LoggySender(
@@ -23,7 +24,7 @@ class LoggySender(
         var loggyUploader: LoggyUploader) : LoggyComponent {
 
     private val sendingFiles = CopyOnWriteArrayList<File>()
-    private var sentLogNames = mutableSetOf<String>()
+    private var sentLogNames = CopyOnWriteArraySet<String>()
     private var sendErrorLogNames = mutableListOf<String>()
     var sentCount = 0
 
@@ -55,8 +56,7 @@ class LoggySender(
         val listMustBeSent = allLogs.filter { !sentLogNames.contains(it.nameWithoutExtension) }.toMutableList()
         sendingFiles.retainAll(listMustBeSent)
         sendingFiles.addAllAbsent(listMustBeSent)
-        sentLogNames.retainAll { allLogsNames.contains(it) }
-
+        sentLogNames.forEach { if (!allLogsNames.contains(it)) sentLogNames.remove(it) }
     }
 
 
@@ -77,6 +77,7 @@ class LoggySender(
             return
         }
         isActive = false
+        loggyUploader.cancel()
         sendingJob?.cancel()
     }
 
@@ -99,33 +100,32 @@ class LoggySender(
         return job
     }
 
-    private suspend fun sendFile(file: File) {
-        coroutineScope {
-            val name = file.nameWithoutExtension
-            Log.i("LoggySender", "sendFile:${file.nameWithoutExtension}")
-            loggyUploader.uploadSingleFile(file) { success ->
-                if (success) {
-                    Log.i("LoggySender", "sendFile: File $name has been sent")
-                    sentCount += 1
-                    sentLogNames.add(name)
-                } else {
-                    sendErrorLogNames.add(name)
-                }
-            }
+    private fun sendFile(file: File) {
+        val name = file.nameWithoutExtension
+        Log.i("LoggySender", "sendFile:${file.nameWithoutExtension}")
+        val sendingSuccess = loggyUploader.uploadSingleFile(file)
+        if (sendingSuccess) {
+            Log.i("LoggySender", "sendFile: File $name has been sent")
+            sentCount += 1
+            sentLogNames.add(name)
+        } else {
+            sendErrorLogNames.add(name)
         }
     }
 
     private fun onCompleteSending(throwable: Throwable?) {
+
+        val resultText = when {
+            sendingJob?.isCancelled == true -> "cancelled"
+            throwable != null -> "completed with error : $throwable"
+            sendErrorLogNames.isNotEmpty() -> "completed with error on files $sendErrorLogNames"
+            else -> "successfully"
+        }
+        Log.i("LoggySender", "onCompleteSending: Sending $resultText. Sent $sentCount file(s).")
+        saveSentNames()
         sendingJob = null
         isSendingInProgress = false
         isUrgentlySendingRequested = false
-        val resultText = when {
-            throwable != null -> "with error : $throwable"
-            sendErrorLogNames.isNotEmpty() -> "with error on files $sendErrorLogNames"
-            else -> "successfully"
-        }
-        Log.i("LoggySender", "onCompleteSending: Sending completed $resultText. Sent $sentCount file(s).")
-        saveSentNames()
     }
 
     private fun saveSentNames() {

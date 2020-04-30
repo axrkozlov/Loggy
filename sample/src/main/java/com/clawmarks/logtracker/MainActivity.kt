@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.clawmarks.loggy.Loggy
-import com.clawmarks.loggy.TestClass
 import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
 import com.clawmarks.logtracker.utils.trace
 import kotlinx.coroutines.*
@@ -35,7 +34,12 @@ class MainActivity : AppCompatActivity() {
                     2)
         }
         findViewById<View>(R.id.btnSelectFiles).setOnClickListener {
-            Loggy.startSending()
+            CoroutineScope(Job()).launch(Dispatchers.IO) {
+                Loggy.startSending()
+                delay(100)
+                Loggy.stopSending()
+            }
+
 //            LogSender.startSending()
 //            coroutineScope.launch {
 //                for (i in 0..10_000) {
@@ -59,9 +63,9 @@ class MainActivity : AppCompatActivity() {
 
         }
         findViewById<View>(R.id.btnStop).setOnClickListener {
-//            Loggy.stopSending()
-//            Log.i("MainActivity", "onCreate: ")
-            TestClass().testfun()
+            Loggy.stopSending()
+            Log.i("MainActivity", "onCreate: ")
+//            TestClass().testfun()
         }
         findViewById<View>(R.id.btngenerateLog).setOnClickListener {
             Loggy.stopSending()
@@ -71,7 +75,7 @@ class MainActivity : AppCompatActivity() {
                     Log.i("MainActivity", "onCreate: \n someinfo $i \n")
 
 //                    if (i == 500) throw Exception("rerere")
-                    delay(2)
+//                    delay(2)
                 }
 
             }
@@ -82,7 +86,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onUserInteraction() {
         super.onUserInteraction()
-        userInteractionDispatcher.onInteraction()
+//        userInteractionDispatcher.onInteraction()
     }
 
 }
