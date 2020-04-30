@@ -10,38 +10,40 @@ import java.lang.Exception
 
 class SentNamesHolder(context: LoggyContext) {
 
-    private val coroutineScope = CoroutineScope(Job() )
-    private val file: File = File(context.prefs.loggyPath,".sentfilenames")
+    private val coroutineScope = CoroutineScope(Job())
+    private val file: File = File(context.prefs.loggyPath, ".sentfilenames")
 
-    fun  save(set:MutableSet<String>){
+    fun save(set: MutableSet<String>) {
         coroutineScope.launch(Dispatchers.IO) {
             writeFile(set)
         }
     }
 
-    private fun writeFile(set: MutableSet<String>){
+    private fun writeFile(set: MutableSet<String>) {
         try {
-            val fOut= FileOutputStream(file)
-            val  osw=OutputStreamWriter(fOut)
+            val fOut = FileOutputStream(file)
+            val osw = OutputStreamWriter(fOut)
             set.forEach {
                 osw.write("$it\n")
             }
             osw.flush()
             osw.close()
-        } catch (e:Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    fun load():MutableSet<String>{
+    fun load(): MutableSet<String> {
         val intoSet = mutableSetOf<String>()
-        coroutineScope.launch(Dispatchers.IO) {
-            readFile(intoSet)
+        if (file.exists()) {
+            coroutineScope.launch(Dispatchers.IO) {
+                readFile(intoSet)
+            }
         }
         return intoSet
     }
 
-    private fun readFile(intoSet:MutableSet<String>){
+    private fun readFile(intoSet: MutableSet<String>) {
         try {
             val fileInputStream = FileInputStream(file)
             val isr = InputStreamReader(fileInputStream)
@@ -49,11 +51,11 @@ class SentNamesHolder(context: LoggyContext) {
             var line: String? = ""
             while (line != null) {
                 line = br.readLine()
-                line?.let{intoSet.add(line)}
+                line?.let { intoSet.add(line) }
             }
 //            Log.i("SentNamesLoader", "readFile: read ${intoSet.size} names")
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
 
 
