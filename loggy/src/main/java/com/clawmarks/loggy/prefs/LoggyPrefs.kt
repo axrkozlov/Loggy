@@ -2,13 +2,17 @@ package com.clawmarks.loggy.prefs
 
 import org.koin.core.KoinComponent
 
-interface LoggyPrefs:KoinComponent {
+interface LoggyPrefs : KoinComponent {
 
-    val bufferBlockSize: Int
-    val maxBufferSize: Int
+    /** Buffer line count start saving to file    */
+    val bufferSize: Int
+
+    /** Buffer line count stop buffering.
+     * If buffer length is larger this value, that mean buffer was not written into file*/
+    val bufferOverflowSize: Int
 
     /**
-     * level
+     * Log level
      * 0 - disabled
      * 1 - analytics
      * 2 - logcat on crash
@@ -16,41 +20,70 @@ interface LoggyPrefs:KoinComponent {
      * 80 - full logcat */
     val logLevel: Int
 
+    /**
+     * Sending level
+     * 0 - disabled
+     * 1 - by server request
+     * 2 - deferred
+     * 80 - urgent */
     val sendingLevel: Int
 
     /**
-     Period between files start sending if sending is enabled.
-     If value is 0 files will be sending every time when new file has been added.
+    Period between files start sending if sending is enabled.
+    If value is 0 files will be sending every time when new file has been added.
      */
-    val sendingIntervalMin:Long
-    val pauseBetweenFileSendingSec :Long
+    val sendingIntervalMin: Long
 
-    val timeBeforeStartSendingSeconds: Int
-    val minAvialableMemoryMb: Int
+    /**
+    Period between a file will be sending after the last one
+     */
+    val pauseBetweenFileSendingSec: Long
 
+    /**
+    Minimal available phone memory for log files.
+    If free memory size less than that value buffer won't be saved to file
+     */
+    val minAvailableMemoryMb: Int
+
+    /**
+    Size of logcat buffer must be between 100-8192
+     */
     val logcatBufferSizeKb: Int
-    val logcatMinBufferSizeKb: Int
-    val logcatMaxBufferSizeKb: Int
 
-    val maxFileSizeKb: Int
+    /**
+    Size of log file.
+    Real file can be a bit larger
+    cause of additional report info and Outputstreamwriter default buffer
+    is 8kb (every 8 kb file flushes to disk)
+     */
+    val fileSizeKb: Int
     val maxFileSizeBytes: Int
-        get() = maxFileSizeKb * 1024
+        get() = fileSizeKb * 1024
 
+    /**
+    Size of log directory.
+    There is 2 directory: analytics and logcat. For each of them value is the same.
+    When new file has been written, eldest file will be removed.
+     */
     val dirSizeMb: Int
     val dirSizeBytes: Int
         get() = dirSizeMb * 1024 * 1024
 
-    /**
-    Max log dir size for logcat and analytics, when writing will be stopped
-     */
+    /** Max log directory size for logcat and analytics, when writing will stopped*/
     val maxDirSizeMb: Int
     val maxDirSizeBytes: Int
         get() = maxDirSizeMb * 1024 * 1024
 
-
-    val logcatPath: String
-    val analyticsPath: String
+    /** Path for loggy */
     val loggyPath: String
+
+    /** Path for logcat files*/
+    val logcatPath: String
+        get() = "$loggyPath/logcat"
+
+    /** Path for analytics files*/
+    val analyticsPath: String
+        get() = "$loggyPath/analytics"
 
 
 }

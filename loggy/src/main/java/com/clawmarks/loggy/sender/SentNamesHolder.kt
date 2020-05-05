@@ -54,7 +54,6 @@ class SentNamesHolder(context: LoggyContext) {
                 line = br.readLine()
                 line?.let { intoSet.add(line) }
             }
-//            Log.i("SentNamesLoader", "readFile: read ${intoSet.size} names")
 
         } catch (e: Exception) {
             e.printStackTrace()

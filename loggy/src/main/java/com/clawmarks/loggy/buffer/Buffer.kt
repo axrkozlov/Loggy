@@ -7,13 +7,13 @@ import com.clawmarks.loggy.message.Message
 abstract class Buffer {
     abstract val bufferWriter: BufferWriter
     abstract val size: Int
-    abstract val blockSize: Int
+    abstract val bufferSize: Int
     abstract val maxSize: Int
     abstract fun push(message: Message)
     abstract fun pull(): Message?
     val isBufferAvailable: Boolean
         get() {
-            if (size > blockSize) save()
+            if (size > bufferSize) save()
             isBufferOverflow = size > maxSize
             return !isBufferOverflow
         }

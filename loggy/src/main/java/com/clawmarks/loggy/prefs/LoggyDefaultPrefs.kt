@@ -6,10 +6,10 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
-class LoggyDefaultPrefs() : LoggyPrefs {
-    override val bufferBlockSize: Int
+class LoggyDefaultPrefs : LoggyPrefs {
+    override val bufferSize: Int
         get() = 256
-    override val maxBufferSize: Int
+    override val bufferOverflowSize: Int
         get() = 10_000
     override val logLevel: Int
         get() = 3
@@ -20,28 +20,18 @@ class LoggyDefaultPrefs() : LoggyPrefs {
     override val pauseBetweenFileSendingSec: Long
         get() = 1
 
-
-    override val timeBeforeStartSendingSeconds: Int
-        get() = 1
-    override val minAvialableMemoryMb: Int
+    override val minAvailableMemoryMb: Int
         get() = 200
 
     override val logcatBufferSizeKb: Int
         get() {
             val value = 1000
-            var size = max(value, logcatMinBufferSizeKb)
-            size = min(size, logcatMaxBufferSizeKb)
+            var size = max(value, 100)
+            size = min(size, 8192)
             return size
         }
-    override val logcatMinBufferSizeKb: Int
-        get() = 100
 
-
-
-    override val logcatMaxBufferSizeKb: Int
-        get() = 8192
-
-    override val maxFileSizeKb: Int
+    override val fileSizeKb: Int
         get() = 64
     override val dirSizeMb: Int
         get() = 4
@@ -49,21 +39,5 @@ class LoggyDefaultPrefs() : LoggyPrefs {
         get() = 8
     private val sdCard: File = Environment.getExternalStorageDirectory()
     override val loggyPath = "${sdCard.absolutePath}/loggy"
-    override val logcatPath: String= "$loggyPath/logcat"
-    override val analyticsPath: String = "$loggyPath/analytics"
-
-
-
-//    var level = 1
-//        set(value) {
-//            if (value >= 2) isLogcatEnabled = true
-//            if (value >= 3) isLogcatEnabled = true
-//            if (value >= 4) isFullLogcatEnabled = true
-//
-//            field = value
-//        }
-//    internal var isLogcatCrashEnabled = false
-//    internal var isLogcatEnabled = false
-//    internal var isFullLogcatEnabled = false
 
 }

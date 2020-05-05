@@ -6,8 +6,8 @@ import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
 import com.clawmarks.loggy.userinteraction.UserInteractionObserver
 import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.di.appyModule
-import com.clawmarks.loggy.di.loggyModule
 import com.clawmarks.logtracker.api.LoggyUploaderImpl
+import com.clawmarks.logtracker.prefs.LoggyPrefsImpl
 import com.clawmarks.logtracker.utils.trace
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
@@ -26,7 +26,7 @@ class App : Application() {
 
          Loggy.start(
                 LoggyUploaderImpl(),
-                LoggyPrefsImpl()
+                 LoggyPrefsImpl()
         )
 
         trace(tag, "onCreate")

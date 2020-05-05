@@ -30,21 +30,6 @@ val appyModule = module {
 
 }
 
-//    single { LogcatBuffer(get(),getProperty("logcatBufferWriter"))    }
-//    factory(named("analyticsBufferWriter")) { BufferWriterImpl(get(),ReportType.ANALYTIC) }
-//    factory(named("logcatBufferWriter"))  { provideBufferWriterLogcat(get()) }
-
-//    single(named("")) { BufferWriterImpl(get(),get()) }
-//    single { AnalyticsBuffer(get(),get()) }
-//}
-
-//private fun provideLoggyFileListState(loggyFileList: LoggyFileList): LoggyFileListState {
-//    return loggyFileList.state
-//}
-//private fun provideBufferWriterLogcat(loggyContext: LoggyContext): BufferWriter {
-//    return BufferWriterImpl(loggyContext,ReportType.REGULAR)
-//}
-
 private fun provideSharedPreferences(context: Context): SharedPreferences {
     return PreferenceManager.getDefaultSharedPreferences(context)
 }

@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.max
+import kotlin.math.min
 
 class LogcatBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : LoggyComponent, Buffer() {
 
@@ -23,10 +25,10 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
     override val size: Int
         get() = if (isLocalBufferEnabled) localBuffer.size else 0
 
-    override val blockSize: Int
-        get() = prefs.bufferBlockSize
+    override val bufferSize: Int
+        get() = prefs.bufferSize
     override val maxSize: Int
-        get() = prefs.maxBufferSize
+        get() = prefs.bufferOverflowSize
 
     private var bufferedReader: BufferedReader? = null
 
@@ -60,8 +62,10 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
     private fun readLogcatLine(): Message? = bufferedReader?.readLine()?.let { LogcatMessage(it) }
 
     private fun setupLogcatBufferSize() {
+        var size = max(prefs.logcatBufferSizeKb, 100)
+        size = min(size, 8192)
         try {
-            val command = "logcat -g ${prefs.logcatBufferSizeKb}K -c"
+            val command = "logcat -g ${size}K -c"
             Runtime.getRuntime().exec(command)
         } catch (e: Exception) {
             e.printStackTrace()

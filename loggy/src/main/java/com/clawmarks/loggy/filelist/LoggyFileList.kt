@@ -17,7 +17,7 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
     private val isOverflown: Boolean
         get() {
             val value = size > maxSizeBytes
-            if (value) Log.i("LoggyFileList", "${dir.canonicalPath} is overflown!")
+            if (value) Log.e("LoggyFileList", "${dir.canonicalPath} is overflown!")
             return value
         }
 

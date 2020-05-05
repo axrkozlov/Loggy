@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onUserInteraction() {
         super.onUserInteraction()
-//        userInteractionDispatcher.onInteraction()
+        userInteractionDispatcher.onInteraction()
     }
 
 }

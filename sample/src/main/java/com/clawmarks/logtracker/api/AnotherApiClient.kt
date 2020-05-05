@@ -9,9 +9,9 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by Sheetal on 5/16/18.
  */
-object ApiClient {
+object AnotherApiClient {
     //    const val BASE_URL = "https://file.io"
-    const val BASE_URL = "http://kon-app2-wt3.hq.bc:8383/api/"
+    const val BASE_URL = "https://jsonplaceholder.typicode.com/posts/1"
     private var retrofit: Retrofit? = null
     val client: Retrofit
         get() {

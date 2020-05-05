@@ -3,16 +3,13 @@ package com.clawmarks.loggy.context
 import android.os.Environment
 import android.os.StatFs
 import android.util.Log
-import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.LoggyComponent
-import com.clawmarks.loggy.prefs.LoggyDefaultPrefs
 import com.clawmarks.loggy.prefs.LoggyPrefs
 
 class LoggyContextImpl(override var prefs: LoggyPrefs) : LoggyContext {
 
     private val components = HashMap<String, LoggyComponent>()
 
-    private fun hasFreeSpace() = StatFs(Environment.getExternalStorageDirectory().path).availableBytes < minAvailableMemoryBytes
     override fun register(component: LoggyComponent) {
         components[component.componentName] = component
     }
@@ -52,7 +49,7 @@ class LoggyContextImpl(override var prefs: LoggyPrefs) : LoggyContext {
             return value
         }
     private val minAvailableMemoryBytes: Int
-        get() = prefs.minAvialableMemoryMb * 1024 * 1024
+        get() = prefs.minAvailableMemoryMb * 1024 * 1024
 
     private var hasNoEnoughMemory: Boolean = false
 

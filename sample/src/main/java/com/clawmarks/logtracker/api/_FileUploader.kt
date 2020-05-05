@@ -157,7 +157,7 @@ class _FileUploader {
     }
 
     init {
-        uploadInterface = com.clawmarks.logtracker.api.ApiClient.client.create(UploadInterface::class.java)
+        uploadInterface = com.clawmarks.logtracker.api.LogApiClient.client.create(UploadInterface::class.java)
     }
 
     companion object {

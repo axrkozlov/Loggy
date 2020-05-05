@@ -14,10 +14,10 @@ class AnalyticsBuffer(override val context: LoggyContext, override val bufferWri
 
     override val size: Int
         get() = localBuffer.size
-    override val blockSize: Int
-        get() = prefs.bufferBlockSize
+    override val bufferSize: Int
+        get() = prefs.bufferSize
     override val maxSize: Int
-        get() = prefs.maxBufferSize
+        get() = prefs.bufferOverflowSize
 
     override fun push(message: Message) {
         if (isBufferAvailable) localBuffer.add(message)

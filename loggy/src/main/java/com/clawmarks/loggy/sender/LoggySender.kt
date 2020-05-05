@@ -63,8 +63,9 @@ class LoggySender(
     fun startSending(isUrgentlySendingRequest: Boolean = false) {
         if (isUrgentlySendingRequest) {
             isUrgentlySendingRequested = true
-            Log.i("LoggySender", "startSending: urgently sending started")
+            Log.i("LoggySender", "startSending: urgently")
         }
+        Log.i("LoggySender", "startSending:")
         isActive = true
         sendingJob = sendFiles()
     }
@@ -76,6 +77,7 @@ class LoggySender(
             Log.i("LoggySender", "stopSending: sending can't be stopped cause it's urgent")
             return
         }
+        Log.i("LoggySender", "stopSending: ")
         isActive = false
         loggyUploader.cancel()
         sendingJob?.cancel()
