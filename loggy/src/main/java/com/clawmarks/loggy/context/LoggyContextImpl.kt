@@ -1,5 +1,6 @@
 package com.clawmarks.loggy.context
 
+import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.util.Log
@@ -60,11 +61,5 @@ class LoggyContextImpl(override var prefs: LoggyPrefs) : LoggyContext {
             it.value.onPrefsUpdated()
         }
     }
-
-    override val serialNumber: String
-        get() = "1234567890"
-    override val terminalId: String
-        get() = "31007579"
-
 
 }

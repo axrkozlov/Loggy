@@ -1,6 +1,5 @@
 package com.clawmarks.loggy.prefs
 
-import android.content.SharedPreferences
 import android.os.Environment
 import java.io.File
 import kotlin.math.max
@@ -39,5 +38,14 @@ class LoggyDefaultPrefs : LoggyPrefs {
         get() = 8
     private val sdCard: File = Environment.getExternalStorageDirectory()
     override val loggyPath = "${sdCard.absolutePath}/loggy"
+    override val extra: Map<String, String>
+        get() = emptyMap()
+    override val deviceId: String
+        get() = "1234567890"
+    override val userId: String
+        get() = "9876543210"
+    override val reportVersion: Int
+        get() = 1
+
 
 }

@@ -16,12 +16,12 @@ fun loggye(tag: String, message: String){
     Loggy.e(tag,message)
 }
 
-fun currentLogFinalTime():String{
+internal fun currentLogFinalTime():String{
     val format = SimpleDateFormat("ddMMyy_HHmmssSSS", Locale.getDefault())
     return format.format(Date(System.currentTimeMillis()))
 }
 
-fun currentLogMessageTime():String{
+internal fun currentLogMessageTime():String{
     val format = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault())
     return format.format(Date(System.currentTimeMillis()))
 }

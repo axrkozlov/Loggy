@@ -22,6 +22,4 @@ interface LoggyContext {
 
     fun register(component: LoggyComponent)
 
-    val serialNumber: String
-    val terminalId: String
 }
