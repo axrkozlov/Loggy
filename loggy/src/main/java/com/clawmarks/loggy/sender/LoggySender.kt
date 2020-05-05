@@ -67,7 +67,7 @@ class LoggySender(
         }
         Log.i("LoggySender", "startSending:")
         isActive = true
-        sendingJob = sendFiles()
+        sendFiles()
     }
 
     private var isUrgentlySendingRequested = false
@@ -83,9 +83,9 @@ class LoggySender(
         sendingJob?.cancel()
     }
 
-    private fun sendFiles(): Job {
-        if (sendingJob != null) return sendingJob!!
-        val job = coroutineScope.launch {
+    private fun sendFiles() {
+        if (sendingJob != null) return
+        sendingJob = coroutineScope.launch {
             updateSendingFileList()
             sendErrorLogNames.clear()
             isSendingInProgress = true
@@ -98,8 +98,7 @@ class LoggySender(
             isSendingInProgress = false
 
         }
-        job.invokeOnCompletion { onCompleteSending(it) }
-        return job
+        sendingJob!!.invokeOnCompletion { onCompleteSending(it) }
     }
 
     private fun sendFile(file: File) {
