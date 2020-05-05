@@ -1,4 +1,4 @@
-package com.clawmarks.logtracker.api
+package com.clawmarks.logtracker.apiafterstopsending
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
  */
 object AnotherApiClient {
     //    const val BASE_URL = "https://file.io"
-    const val BASE_URL = "https://jsonplaceholder.typicode.com/posts/1"
+    const val BASE_URL = "https://jsonplaceholder.typicode.com"
     private var retrofit: Retrofit? = null
     val client: Retrofit
         get() {

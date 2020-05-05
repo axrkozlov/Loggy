@@ -11,6 +11,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
+import com.clawmarks.logtracker.apiafterstopsending.AnotherServiceImpl
 import com.clawmarks.logtracker.utils.trace
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.get
@@ -33,6 +34,8 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     2)
         }
+        
+        
         findViewById<View>(R.id.btnSelectFiles).setOnClickListener {
             CoroutineScope(Job()).launch(Dispatchers.IO) {
                 Loggy.startSending()
@@ -40,32 +43,12 @@ class MainActivity : AppCompatActivity() {
                 Loggy.stopSending()
             }
 
-//            LogSender.startSending()
-//            coroutineScope.launch {
-//                for (i in 0..10_000) {
-//                    trace("MainActivity", "message $i LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG")
-//                }
-//                Tracker.saveBuffer()
-//            }
-
-//            if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//                    != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-//                        2)
-//            } else {
-//                val intent = Intent()
-//                intent.type = "image/*"
-//                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-//                intent.action = Intent.ACTION_GET_CONTENT
-//                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1)
-//            }
-
-
         }
         findViewById<View>(R.id.btnStop).setOnClickListener {
-            Loggy.stopSending()
-            Log.i("MainActivity", "onCreate: ")
-//            TestClass().testfun()
+//            Loggy.stopSending()
+//            Log.i("MainActivity", "onCreate: ")
+////            TestClass().testfun()
+            testConnection()
         }
         findViewById<View>(R.id.btngenerateLog).setOnClickListener {
             Loggy.stopSending()
@@ -80,6 +63,15 @@ class MainActivity : AppCompatActivity() {
 
             }
 
+        }
+    }
+
+    val service = AnotherServiceImpl()
+    private fun testConnection() {
+        CoroutineScope(Job()).launch(Dispatchers.IO) { 
+            val result = service.checkPosts()
+            Log.i("MainActivity", "testConnection: result")
+            
         }
     }
 
