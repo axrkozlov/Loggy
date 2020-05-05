@@ -86,7 +86,7 @@ interface LoggyPrefs : KoinComponent {
         get() = "$loggyPath/analytics"
 
     /** Extra info fields inside report */
-    val extra: Map<String, String>
+    val extra: Map<String, Any>
 
     val deviceId: String
     val userId: String

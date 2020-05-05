@@ -38,7 +38,7 @@ class LoggyDefaultPrefs : LoggyPrefs {
         get() = 8
     private val sdCard: File = Environment.getExternalStorageDirectory()
     override val loggyPath = "${sdCard.absolutePath}/loggy"
-    override val extra: Map<String, String>
+    override val extra: Map<String, Any>
         get() = emptyMap()
     override val deviceId: String
         get() = "1234567890"

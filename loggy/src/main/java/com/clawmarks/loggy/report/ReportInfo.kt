@@ -1,6 +1,5 @@
 package com.clawmarks.loggy.report
 
-import android.hardware.SensorAdditionalInfo
 import com.google.gson.Gson
 import java.util.*
 
@@ -11,7 +10,7 @@ data class ReportInfo(
         val userId: String,
         val time: String,
         val causeExceptionInfo: CauseExceptionInfo? = null,
-        val extra: Map<String,String>,
+        val extra: Map<String,Any>,
         val reportId: UUID=UUID.randomUUID()
 ) {
     fun toJson(): String = Gson().toJson(this)
