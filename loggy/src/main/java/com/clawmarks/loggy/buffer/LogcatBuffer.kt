@@ -65,7 +65,7 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
         var size = max(prefs.logcatBufferSizeKb, 100)
         size = min(size, 8192)
         try {
-            val command = "logcat -g ${size}K -c"
+            val command = "logcat -G ${size}K -c"
             Runtime.getRuntime().exec(command)
         } catch (e: Exception) {
             e.printStackTrace()
