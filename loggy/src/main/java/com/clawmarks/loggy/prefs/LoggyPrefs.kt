@@ -91,6 +91,8 @@ interface LoggyPrefs : KoinComponent {
     val deviceId: String
     val userId: String
 
-    val reportVersion:Int
+    val reportVersion: Int
 
+    val isDebugMode
+        get() = false
 }

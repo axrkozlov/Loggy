@@ -1,5 +1,6 @@
 package com.clawmarks.loggy.buffer
 
+import android.util.Log
 import com.clawmarks.loggy.writer.BufferWriter
 import com.clawmarks.loggy.message.Message
 import com.clawmarks.loggy.LoggyComponent
@@ -20,7 +21,10 @@ class AnalyticsBuffer(override val context: LoggyContext, override val bufferWri
         get() = prefs.bufferOverflowSize
 
     override fun push(message: Message) {
-        if (isBufferAvailable) localBuffer.add(message)
+        if (isBufferAvailable) {
+            localBuffer.add(message)
+            if (prefs.isDebugMode) Log.i("AnalyticsBuffer", "push: $message")
+        }
     }
 
     override fun pull(): Message? = localBuffer.poll()
