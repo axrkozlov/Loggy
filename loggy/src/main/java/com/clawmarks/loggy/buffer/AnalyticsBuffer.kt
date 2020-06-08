@@ -23,7 +23,7 @@ class AnalyticsBuffer(override val context: LoggyContext, override val bufferWri
     override fun push(message: Message) {
         if (isBufferAvailable) {
             localBuffer.add(message)
-            if (prefs.isDebugMode) Log.i("AnalyticsBuffer", "push: $message")
+            if (prefs.isDebugMode) Log.i("AnalyticsBuffer", "push: ${message.content}")
         }
     }
 
