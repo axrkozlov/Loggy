@@ -35,6 +35,13 @@ interface LoggyPrefs : KoinComponent {
     val sendingIntervalMin: Long
 
     /**
+    Period between files start sending again when a sending error occurred if sending is enabled.
+    If value is 0 files will be sending every time when new file has been added.
+     */
+    //TODO: implement behaviour
+    val sendingRetryIntervalMin: Long
+
+    /**
     Period between a file will be sending after the last one
      */
     val pauseBetweenFileSendingSec: Long
