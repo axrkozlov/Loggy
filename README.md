@@ -1,2 +1,2 @@
-# retrofit-multiple-file-upload-with-progress
-Sending log and analytics files library
+# Loggy log files library
+Sending log and analytics files tool
