@@ -3,7 +3,6 @@ package com.clawmarks.loggy.sender
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.filelist.LoggyFileList
 import com.clawmarks.loggy.LoggyComponent
 import com.clawmarks.loggy.context.LoggyContext
@@ -34,6 +33,8 @@ class LoggySender(
         private set
 
     private var sendingInterval: Long = 0
+    private var sendingRetryInterval: Long = 0
+
     private val isSendingWhenFileListUpdated: Boolean
         get() = sendingInterval <= 0
     private var pauseBetweenFileSending: Long = 1000
@@ -124,6 +125,7 @@ class LoggySender(
         }
         Log.i("LoggySender", "onCompleteSending: Sending $resultText. Sent $sentCount file(s).")
         saveSentNames()
+        planNextSendingTask(throwable != null || sendErrorLogNames.isNotEmpty())
         sendingJob = null
         isSendingInProgress = false
         isUrgentlySendingRequested = false
@@ -145,37 +147,45 @@ class LoggySender(
         }
         if (context.isSendingUrgent) isActive = true
         sendingInterval = prefs.sendingIntervalMin * 60 * 1000
+        if (sendingInterval <= 0) sendingRetryInterval = prefs.sendingRetryIntervalMin * 60 * 1000
         pauseBetweenFileSending = prefs.pauseBetweenFileSendingSec * 1000
         setupUpdateIntervalHandler()
         setupUpdateObserver()
-
     }
 
     private val handler = Handler(Looper.getMainLooper())
     private val sendingPeriodicRunnable: Runnable = Runnable {
-        if (sendingInterval > 0) {
-            this@LoggySender.addRunnable()
-            updateSendingFileList()
-            if (isSendingInProgress || !isActive) return@Runnable
-            Log.i("LoggySender", "LoggySender: start sending on interval")
-            sendFiles()
-        }
+        updateSendingFileList()
+        if (isSendingInProgress || !isActive) return@Runnable
+        Log.i("LoggySender", "Start sending after interval is elapsed")
+        sendFiles()
     }
 
     private fun setupUpdateIntervalHandler() {
-        handler.removeCallbacksAndMessages(sendingPeriodicRunnable)
-        addRunnable()
+        clearSendingTask()
+        planNextSendingTask()
     }
 
-    private fun addRunnable() {
-        handler.postDelayed(sendingPeriodicRunnable, sendingInterval)
+    private fun planNextSendingTask(retryOnError: Boolean = false) {
+        if (sendingInterval > 0) {
+            Log.i("LoggySender", "Sending task planned in $sendingInterval")
+            handler.postDelayed(sendingPeriodicRunnable, sendingInterval)
+        } else if (retryOnError) {
+            Log.i("LoggySender", "Sending task on error occurred planned in $sendingRetryInterval")
+            handler.postDelayed(sendingPeriodicRunnable, sendingRetryInterval)
+        }
+    }
+
+    private fun clearSendingTask(){
+        handler.removeCallbacksAndMessages(sendingPeriodicRunnable)
     }
 
     private val listUpdateObserver by lazy {
         Observer { _, _ ->
+            clearSendingTask()
             updateSendingFileList()
             if (isSendingInProgress || !isActive) return@Observer
-            Log.i("LoggySender", "LoggySender: start sending when a file list updated")
+            Log.i("LoggySender", "Start sending when a file list updated")
             sendFiles()
         }
     }

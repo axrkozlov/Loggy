@@ -16,6 +16,8 @@ class LoggyDefaultPrefs : LoggyPrefs {
         get() = 2
     override val sendingIntervalMin: Long
         get() = 0
+    override val sendingRetryIntervalMin: Long
+        get() = 5
     override val pauseBetweenFileSendingSec: Long
         get() = 1
 

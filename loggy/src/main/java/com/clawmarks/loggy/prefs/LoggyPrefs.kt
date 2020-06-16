@@ -36,6 +36,7 @@ interface LoggyPrefs : KoinComponent {
 
     /**
     Period between files start sending again when a sending error occurred if sending is enabled.
+    Uses only with sendingIntervalMin = 0, otherwise will be ignored.
     If value is 0 files will be sending every time when new file has been added.
      */
     //TODO: implement behaviour

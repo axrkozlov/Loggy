@@ -22,6 +22,7 @@ class SentNamesHolder(context: LoggyContext) {
 
     private fun writeFile(set: MutableSet<String>) {
         try {
+            if (set.isEmpty()) return
             val fOut = FileOutputStream(file)
             val osw = OutputStreamWriter(fOut)
             set.forEach {
