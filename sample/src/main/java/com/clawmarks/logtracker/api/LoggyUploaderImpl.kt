@@ -1,16 +1,20 @@
 package com.clawmarks.logtracker.api
 
+import android.os.Environment
 import android.util.Log
+import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.uploader.LoggyUploader
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okio.BufferedSink
 import retrofit2.Call
-import retrofit2.http.*
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.Part
+import java.io.*
+import java.util.zip.Deflater
+
 
 class LoggyUploaderImpl : LoggyUploader {
 
@@ -43,20 +47,58 @@ class LoggyUploaderImpl : LoggyUploader {
             return mFile!!.length()
         }
 
+//        @Throws(IOException::class)
+//        override fun writeTo(sink: BufferedSink) {
+//            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+//            val inputStream = FileInputStream(mFile)
+//            var uploaded: Long = 0
+//            inputStream.use { input ->
+//                var read: Int
+//                while (input.read(buffer).also { read = it } != -1) {
+//                    uploaded += read.toLong()
+//                    sink.write(buffer, 0, read)
+//                }
+//            }
+//
+//            val compressed = compress(mFile)
+//            sink.write(compressed)
+//        }
+
         @Throws(IOException::class)
         override fun writeTo(sink: BufferedSink) {
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            val fis = FileInputStream(mFile)
-            var uploaded: Long = 0
-            fis.use { `in` ->
-                var read: Int
-                while (`in`.read(buffer).also { read = it } != -1) {
-                    uploaded += read.toLong()
-                    sink.write(buffer, 0, read)
-                }
-            }
+            val compressed = compress(mFile)
+            sink.write(compressed)
         }
-    }
+
+        private fun compress(file: File?): ByteArray {
+//            val inputString = "blahblahblah"
+//            val input = file.toByteArray(charset("UTF-8"))
+//            val output = ByteArray()
+//            val compresser = Deflater()
+//            compresser.setInput(file)
+//            compresser.finish()
+//            val compressedDataLength: Int = compresser.deflate(output)
+//            compresser.end()
+            if (file == null) return ByteArray(0)
+            val deflater = Deflater()
+            deflater.setInput(file.readBytes())
+            deflater.finish()
+
+            val baos = ByteArrayOutputStream()
+            val fOut = FileOutputStream(File("${Environment.getExternalStorageDirectory().absolutePath}/loggy", "compressed.zlib"))
+            val buf = ByteArray(8192)
+            while (!deflater.finished()) {
+                val byteCount = deflater.deflate(buf)
+                baos.write(buf, 0, byteCount)
+                fOut.write(buf, 0, byteCount)
+            }
+            deflater.end()
+
+
+            return baos.toByteArray()
+        }
+}
+
 
     override fun uploadSingleFile(file: File): Boolean {
         val fileBody = PRRequestBody(file)

@@ -7,6 +7,7 @@ import com.clawmarks.loggy.userinteraction.UserInteractionObserver
 import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.di.appyModule
 import com.clawmarks.logtracker.api.LoggyUploaderImpl
+import com.clawmarks.logtracker.fileioapi.FileioUploader
 import com.clawmarks.logtracker.prefs.LoggyPrefsImpl
 import com.clawmarks.logtracker.utils.trace
 import org.koin.android.ext.android.get
@@ -25,7 +26,8 @@ class App : Application() {
         }
 
          Loggy.start(
-                LoggyUploaderImpl(),
+//                LoggyUploaderImpl(),
+                 FileioUploader(),
                  LoggyPrefsImpl()
         )
 
