@@ -9,6 +9,7 @@ import com.clawmarks.loggy.context.LoggyContext
 import com.clawmarks.loggy.uploader.LoggyUploader
 import kotlinx.coroutines.*
 import java.io.File
+import java.lang.Exception
 import java.lang.Runnable
 import java.util.Observer
 import java.util.concurrent.CopyOnWriteArrayList
@@ -87,22 +88,30 @@ class LoggySender(
     private fun sendFiles() {
         if (sendingJob != null) return
         sendingJob = coroutineScope.launch {
-            updateSendingFileList()
-            sendErrorLogNames.clear()
-            isSendingInProgress = true
-            sentCount = 0
-            while (isActive && sendingFiles.isNotEmpty()) {
-                sendFile(sendingFiles[0])
-                sendingFiles.removeAt(0)
-                delay(pauseBetweenFileSending)
+            try {
+                updateSendingFileList()
+                sendErrorLogNames.clear()
+                isSendingInProgress = true
+                sentCount = 0
+                while (isActive && sendingFiles.isNotEmpty()) {
+                    sendFile(sendingFiles[0])
+                    sendingFiles.removeAt(0)
+                    delay(pauseBetweenFileSending)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isSendingInProgress = false
             }
-            isSendingInProgress = false
-
         }
         sendingJob!!.invokeOnCompletion { onCompleteSending(it) }
     }
 
     private fun sendFile(file: File) {
+        if (!file.exists()){
+            Log.e("LoggySender", "sendFile: $file does not exist anymore")
+            return
+        }
         val name = file.nameWithoutExtension
         Log.i("LoggySender", "sendFile:${file.nameWithoutExtension}")
         val sendingSuccess = loggyUploader.uploadSingleFile(file)
