@@ -1,9 +1,10 @@
 package com.clawmarks.loggy.context
 
 import com.clawmarks.loggy.LoggyComponent
+import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.prefs.LoggyPrefs
 
-interface LoggyContext {
+interface LoggyContext:LoggyComponent {
     fun updatePrefs()
     var prefs: LoggyPrefs
     var logLevel: Int
@@ -20,6 +21,8 @@ interface LoggyContext {
 
     val hasEnoughMemory: Boolean
 
-    fun register(component: LoggyComponent)
+    var hasSendingPermission: Boolean
+
+    fun register(component: LoggyContextComponent)
 
 }

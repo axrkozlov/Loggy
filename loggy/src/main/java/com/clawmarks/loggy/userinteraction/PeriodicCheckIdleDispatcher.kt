@@ -2,8 +2,13 @@ package com.clawmarks.loggy.userinteraction
 
 import android.os.Handler
 import android.os.Looper
+import com.clawmarks.loggy.LoggyContextComponent
+import com.clawmarks.loggy.context.LoggyContext
 
-class PeriodicCheckIdleDispatcher(private val period: Long = 20000, private val timeForIsIdle:Long = 20000) : UserInteractionDispatcher() {
+class PeriodicCheckIdleDispatcher(override val context: LoggyContext) : UserInteractionDispatcher(),LoggyContextComponent {
+    private var timeForIsIdle:Long = 10 * 3600
+    private var period: Long = 1000
+
     var isIdle = false
         private set
     private var lastInteractionTime: Long = currentMillis
@@ -55,5 +60,9 @@ class PeriodicCheckIdleDispatcher(private val period: Long = 20000, private val 
         observers.forEach {
             it.onIdle()
         }
+    }
+
+    override fun onPrefsUpdated() {
+        timeForIsIdle = prefs.timeForIsIdleMin * 60000
     }
 }

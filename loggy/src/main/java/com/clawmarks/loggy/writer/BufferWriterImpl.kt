@@ -1,22 +1,23 @@
 package com.clawmarks.loggy.writer
 
 import android.util.Log
-import com.clawmarks.loggy.report.ReportInfo
-import com.clawmarks.loggy.report.CauseExceptionInfo
-import com.clawmarks.loggy.report.ReportType
+import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.buffer.Buffer
-import com.clawmarks.loggy.filelist.LoggyFileListState
-import com.clawmarks.loggy.LoggyComponent
 import com.clawmarks.loggy.context.LoggyContext
+import com.clawmarks.loggy.filelist.LoggyFileListState
+import com.clawmarks.loggy.report.CauseExceptionInfo
+import com.clawmarks.loggy.report.ReportInfo
+import com.clawmarks.loggy.report.ReportType
 import com.clawmarks.loggy.utils.currentLogFinalTime
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
-import java.lang.Exception
 import java.util.*
+import java.util.zip.Deflater
+import java.util.zip.DeflaterOutputStream
 
-class BufferWriterImpl(override val context: LoggyContext, private val reportType: ReportType, val loggyFileListState: LoggyFileListState) : LoggyComponent, BufferWriter {
+class BufferWriterImpl(override val context: LoggyContext, private val reportType: ReportType, val loggyFileListState: LoggyFileListState) : LoggyContextComponent, BufferWriter {
 
     override val componentName: String
         get() = super.componentName + reportType
@@ -180,12 +181,16 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         osw!!.write("\"reportInfo\":${reportInfo.toJson()}")
         osw!!.write("}\n")
         closeFile()
-        renameFile()
+        nameFile(String.format("%1$2s_%2$2s_%3$2s.log", deviceId, endTime, reportType))
     }
+//
+//    private fun compressFile(){
+//        val compressor = Deflater()
+//        val dos = DeflaterOutputStream(baos)
+//        dos.write(inputStr.getBytes())
+//    }
 
-
-    private fun renameFile() {
-        val name = String.format("%1$2s_%2$2s_%3$2s.log", deviceId, endTime, reportType)
+    private fun nameFile(name:  String) {
         val file = File(path, name)
         tempFile.renameTo(file)
     }

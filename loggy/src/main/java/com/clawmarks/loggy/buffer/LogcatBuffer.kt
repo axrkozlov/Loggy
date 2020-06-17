@@ -4,7 +4,7 @@ package com.clawmarks.loggy.buffer
 import com.clawmarks.loggy.writer.BufferWriter
 import com.clawmarks.loggy.message.LogcatMessage
 import com.clawmarks.loggy.message.Message
-import com.clawmarks.loggy.LoggyComponent
+import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.context.LoggyContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.max
 import kotlin.math.min
 
-class LogcatBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : LoggyComponent, Buffer() {
+class LogcatBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : LoggyContextComponent, Buffer() {
 
 
     private val localBuffer = ConcurrentLinkedQueue<Message>()
@@ -65,7 +65,7 @@ class LogcatBuffer(override val context: LoggyContext, override val bufferWriter
         var size = max(prefs.logcatBufferSizeKb, 100)
         size = min(size, 8192)
         try {
-            val command = "logcat -G ${size}K -c"
+            val command = "logcat -G ${size}K"
             Runtime.getRuntime().exec(command)
         } catch (e: Exception) {
             e.printStackTrace()

@@ -63,7 +63,7 @@ class FileioUploader : LoggyUploader {
 
         override fun contentType(): MediaType? {
             // i want to upload only images
-            return MediaType.parse("application/zlib")
+            return MediaType.parse(mimeFileType)
         }
 
         @Throws(IOException::class)

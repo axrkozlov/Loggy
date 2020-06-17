@@ -11,13 +11,17 @@ class LoggyDefaultPrefs : LoggyPrefs {
     override val bufferOverflowSize: Int
         get() = 10_000
     override val logLevel: Int
-        get() = 3
-    override val sendingLevel: Int
         get() = 2
+    override val sendingLevel: Int
+        get() = 0
     override val sendingIntervalMin: Long
         get() = 0
     override val sendingRetryIntervalMin: Long
         get() = 5
+    override val timeForIsIdleMin: Long
+        get() = 1
+    override val timeIsSendingPermittedMin: Long
+        get() = 60
     override val pauseBetweenFileSendingSec: Long
         get() = 1
 

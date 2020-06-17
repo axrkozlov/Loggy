@@ -9,6 +9,8 @@ import com.clawmarks.loggy.di.LoggyKoinComponent
 import com.clawmarks.loggy.prefs.LoggyPrefs
 import com.clawmarks.loggy.sender.LoggySender
 import com.clawmarks.loggy.uploader.LoggyUploader
+import com.clawmarks.loggy.userinteraction.SendingPermissionDispatcher
+import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
 import org.koin.core.*
 import org.koin.core.KoinComponent
 
@@ -18,23 +20,26 @@ class Loggy internal constructor(): LoggyKoinComponent {
     private val loggySender: LoggySender by inject()
     private val analyticsBuffer: AnalyticsBuffer by inject()
     private val logcatBuffer: LogcatBuffer by inject()
+    private val userInteractionDispatcher: UserInteractionDispatcher by inject()
+    private val sendingPermissionDispatcher: SendingPermissionDispatcher by inject()
 
-    fun log(tag: String, message: String, messageLevel: MessageLevel) {
+
+    private fun log(tag: String, message: String, messageLevel: MessageLevel) {
         if (context.isAnalyticsEnabled) analyticsBuffer.push(AnalyticsMessage(tag, message, messageLevel))
     }
 
-    fun dump(throwable: Throwable, isFatal: Boolean = false) {
+    private fun dump(throwable: Throwable, isFatal: Boolean = false) {
         if (context.isAnalyticsEnabled) analyticsBuffer.save(throwable, isFatal)
         if (context.isLogcatCrashEnabled) logcatBuffer.save(throwable, isFatal)
     }
 
-    fun updatePrefs() = context.updatePrefs()
+    private fun updatePrefs() = context.updatePrefs()
 
-    fun startSending(isUrgentlySendingRequest: Boolean = false) {
+    private fun startSending(isUrgentlySendingRequest: Boolean = false) {
         if (context.isSendingEnabled) loggySender.startSending(isUrgentlySendingRequest)
     }
 
-    fun stopSending(isForce: Boolean = false) {
+    private fun stopSending(isForce: Boolean = false) {
         loggySender.stopSending(isForce)
     }
 
@@ -45,7 +50,7 @@ class Loggy internal constructor(): LoggyKoinComponent {
 
     companion object {
 
-        fun start( vararg components: KoinComponent) {
+        fun start( vararg components: LoggyComponent) {
 
             components.forEach {
                 when (it) {
@@ -55,6 +60,8 @@ class Loggy internal constructor(): LoggyKoinComponent {
             }
             instance.analyticsBuffer
             instance.logcatBuffer
+            instance.userInteractionDispatcher
+            updatePrefs()
             HOLDER.isInitialied = true
         }
 
@@ -88,6 +95,18 @@ class Loggy internal constructor(): LoggyKoinComponent {
 
         fun stopSending(isForce: Boolean = false) {
             instance.stopSending(isForce)
+        }
+
+        fun onInteraction(){
+            instance.userInteractionDispatcher.onInteraction()
+        }
+
+        fun giveSendingPermission(){
+            instance.sendingPermissionDispatcher.onPermitted()
+        }
+
+        fun stopSendingPermission(){
+            instance.sendingPermissionDispatcher.onProhibited()
         }
     }
 }

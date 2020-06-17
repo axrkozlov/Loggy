@@ -1,6 +1,8 @@
 package com.clawmarks.loggy.userinteraction
 
-abstract class UserInteractionDispatcher{
+import com.clawmarks.loggy.LoggyComponent
+
+abstract class UserInteractionDispatcher:LoggyComponent {
     abstract fun onInteraction()
 
     abstract fun addObserver(userInteractionObserver: UserInteractionObserver)

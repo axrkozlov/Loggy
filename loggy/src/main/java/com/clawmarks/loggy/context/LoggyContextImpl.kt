@@ -1,17 +1,16 @@
 package com.clawmarks.loggy.context
 
-import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.util.Log
-import com.clawmarks.loggy.LoggyComponent
+import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.prefs.LoggyPrefs
 
 class LoggyContextImpl(override var prefs: LoggyPrefs) : LoggyContext {
 
-    private val components = HashMap<String, LoggyComponent>()
+    private val components = HashMap<String, LoggyContextComponent>()
 
-    override fun register(component: LoggyComponent) {
+    override fun register(component: LoggyContextComponent) {
         components[component.componentName] = component
     }
 
@@ -49,6 +48,8 @@ class LoggyContextImpl(override var prefs: LoggyPrefs) : LoggyContext {
             hasNoEnoughMemory = !value
             return value
         }
+    override var hasSendingPermission: Boolean = false
+
     private val minAvailableMemoryBytes: Int
         get() = prefs.minAvailableMemoryMb * 1024 * 1024
 

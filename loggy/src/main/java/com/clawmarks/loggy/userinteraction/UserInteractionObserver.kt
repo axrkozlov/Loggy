@@ -1,6 +1,8 @@
 package com.clawmarks.loggy.userinteraction
 
-interface UserInteractionObserver {
+import com.clawmarks.loggy.LoggyComponent
+
+interface UserInteractionObserver: LoggyComponent {
     fun onInteraction()
     fun onIdle()
 }

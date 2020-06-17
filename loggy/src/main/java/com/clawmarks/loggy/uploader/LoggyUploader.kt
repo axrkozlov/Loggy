@@ -1,11 +1,11 @@
 package com.clawmarks.loggy.uploader
 
-import org.koin.core.KoinComponent
+import com.clawmarks.loggy.LoggyComponent
 import java.io.File
 
 /** interface LoggyUploader must be implemented as synchronous function, file must be sent one by one
 */
-interface LoggyUploader:KoinComponent {
+interface LoggyUploader:LoggyComponent {
 
     /**
      * Mime file type for an api

@@ -22,12 +22,9 @@ class MainActivity : AppCompatActivity() {
     private var pDialog: ProgressDialog? = null
     private val coroutineScope = CoroutineScope(Dispatchers.IO + Job())
 
-    val userInteractionDispatcher = get<UserInteractionDispatcher>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         trace("asdf", "asdf")
         if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 !== PackageManager.PERMISSION_GRANTED) {
@@ -76,9 +73,21 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    override fun onResume() {
+        super.onResume()
+        Loggy.giveSendingPermission()
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+//        Loggy.stopSendingPermission()
+
+    }
+
     override fun onUserInteraction() {
         super.onUserInteraction()
-        userInteractionDispatcher.onInteraction()
+        Loggy.onInteraction()
     }
 
 }

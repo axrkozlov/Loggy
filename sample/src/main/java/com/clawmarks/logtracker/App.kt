@@ -1,14 +1,10 @@
 package com.clawmarks.logtracker
 
 import android.app.Application
-import android.util.Log
-import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
-import com.clawmarks.loggy.userinteraction.UserInteractionObserver
 import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.di.appyModule
-import com.clawmarks.logtracker.api.LoggyUploaderImpl
-import com.clawmarks.logtracker.fileioapi.FileioUploader
-import com.clawmarks.logtracker.prefs.LoggyPrefsImpl
+import com.clawmarks.loggy.prefs.LoggyPrefs
+import com.clawmarks.loggy.uploader.LoggyUploader
 import com.clawmarks.logtracker.utils.trace
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
@@ -24,37 +20,16 @@ class App : Application() {
             androidContext(this@App)
             modules(listOf(appyModule))
         }
+        val loggyUploader = get<LoggyUploader>()
+        val loggyPrefs = get<LoggyPrefs>()
 
-         Loggy.start(
+        Loggy.start(
 //                LoggyUploaderImpl(),
-                 FileioUploader(),
-                 LoggyPrefsImpl()
+                loggyUploader,
+                loggyPrefs
         )
 
         trace(tag, "onCreate")
-
-//        Loggy.context.logLevel = 3
-        Loggy.updatePrefs()
-//        for (i in 1..1000) {
-//            Log.i("App", "onCreate: ")
-//
-//
-//        }
-        val userInteractionDispatcher = get<UserInteractionDispatcher>()
-        userInteractionDispatcher.addObserver(object:UserInteractionObserver{
-            override fun onInteraction() {
-                Loggy.stopSending()
-                Log.i("App", "onInteraction: Loggy.stopSending")
-
-            }
-
-            override fun onIdle() {
-                Loggy.startSending()
-                Log.i("App", "onIdle: Loggy.startSending")
-
-            }
-
-        })
 
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->

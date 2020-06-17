@@ -2,7 +2,6 @@ package com.clawmarks.logtracker.api
 
 import android.os.Environment
 import android.util.Log
-import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.uploader.LoggyUploader
 import okhttp3.MediaType
 import okhttp3.MultipartBody

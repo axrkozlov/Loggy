@@ -1,8 +1,8 @@
 package com.clawmarks.loggy.prefs
 
-import org.koin.core.KoinComponent
+import com.clawmarks.loggy.LoggyComponent
 
-interface LoggyPrefs : KoinComponent {
+interface LoggyPrefs : LoggyComponent {
 
     /** Buffer line count start saving to file    */
     val bufferSize: Int
@@ -39,8 +39,18 @@ interface LoggyPrefs : KoinComponent {
     Uses only with sendingIntervalMin = 0, otherwise will be ignored.
     If value is 0 files will be sending every time when new file has been added.
      */
-    //TODO: implement behaviour
     val sendingRetryIntervalMin: Long
+
+    /**
+     * Time without user activity log sending starts
+     */
+    val timeForIsIdleMin: Long
+
+    /**
+     * Time while sending is permitted
+     * value = 0 - permission stops manual with Loggy.stopSendingPermission
+     */
+    val timeIsSendingPermittedMin: Long
 
     /**
     Period between a file will be sending after the last one
@@ -99,6 +109,9 @@ interface LoggyPrefs : KoinComponent {
     val deviceId: String
     val userId: String
 
+    /**
+     * Version must be updated after log file structure changed
+     */
     val reportVersion: Int
 
     val isDebugMode

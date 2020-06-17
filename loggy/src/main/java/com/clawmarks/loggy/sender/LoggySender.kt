@@ -4,7 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.clawmarks.loggy.filelist.LoggyFileList
-import com.clawmarks.loggy.LoggyComponent
+import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.context.LoggyContext
 import com.clawmarks.loggy.uploader.LoggyUploader
 import kotlinx.coroutines.*
@@ -21,7 +21,7 @@ class LoggySender(
         private val sentNamesHolder: SentNamesHolder,
         private val analyticsFileList: LoggyFileList,
         private val logcatFileList: LoggyFileList,
-        var loggyUploader: LoggyUploader) : LoggyComponent {
+        var loggyUploader: LoggyUploader) : LoggyContextComponent {
 
     private val sendingFiles = CopyOnWriteArrayList<File>()
     private var sentLogNames = CopyOnWriteArraySet<String>()

@@ -1,8 +1,5 @@
 package com.clawmarks.loggy.di
 
-import android.content.Context
-import android.content.SharedPreferences
-import android.preference.PreferenceManager
 import com.clawmarks.loggy.report.ReportType
 import com.clawmarks.loggy.buffer.AnalyticsBuffer
 import com.clawmarks.loggy.buffer.LogcatBuffer
@@ -11,8 +8,6 @@ import com.clawmarks.loggy.filelist.LoggyFileListState
 import com.clawmarks.loggy.sender.LoggySender
 import com.clawmarks.loggy.prefs.LoggyPrefs
 import com.clawmarks.loggy.prefs.LoggyDefaultPrefs
-import com.clawmarks.loggy.userinteraction.PeriodicCheckIdleDispatcher
-import com.clawmarks.loggy.userinteraction.UserInteractionDispatcher
 import com.clawmarks.loggy.writer.BufferWriter
 import com.clawmarks.loggy.writer.BufferWriterImpl
 import com.clawmarks.loggy.context.LoggyContext
@@ -20,12 +15,12 @@ import com.clawmarks.loggy.context.LoggyContextImpl
 import com.clawmarks.loggy.sender.SentNamesHolder
 import com.clawmarks.loggy.uploader.LoggyDefaultUploader
 import com.clawmarks.loggy.uploader.LoggyUploader
-import org.koin.android.ext.koin.androidContext
+import com.clawmarks.loggy.userinteraction.*
 import org.koin.core.qualifier.named
+import org.koin.dsl.binds
 import org.koin.dsl.module
 
 val loggyModule = module {
-    single { provideSharedPreferences(androidContext()) }
     single<LoggyContext> { LoggyContextImpl(get()) }
 
     single<LoggyFileList>(named("analyticsFileList")) { LoggyFileList(get(), ReportType.ANALYTIC) }
@@ -41,25 +36,30 @@ val loggyModule = module {
     single { LoggySender(get(),get(), get(named("analyticsFileList")), get(named("logcatFileList")),get()) }
     single<LoggyPrefs> { LoggyDefaultPrefs() }
     single<LoggyUploader> { LoggyDefaultUploader() }
-
-//    single { LogcatBuffer(get(),getProperty("logcatBufferWriter"))    }
-//    factory(named("analyticsBufferWriter")) { BufferWriterImpl(get(),ReportType.ANALYTIC) }
-//    factory(named("logcatBufferWriter"))  { provideBufferWriterLogcat(get()) }
-
-//    single(named("")) { BufferWriterImpl(get(),get()) }
-//    single { AnalyticsBuffer(get(),get()) }
+    single { InteractionPermissionHandler(get()) } binds arrayOf(SendingPermissionObserver::class, UserInteractionObserver::class)
+    single { provideUserInteractionDispatcher(get(), get()) }
+    single { provideSendingPermissionDispatcher(get(), get()) }
 }
 
 private fun provideLoggyFileListState(loggyFileList: LoggyFileList): LoggyFileListState {
     return loggyFileList.state
 }
-//private fun provideBufferWriterLogcat(loggyContext: LoggyContext): BufferWriter {
-//    return BufferWriterImpl(loggyContext,ReportType.REGULAR)
-//}
 
-private fun provideSharedPreferences(context: Context): SharedPreferences {
-    return PreferenceManager.getDefaultSharedPreferences(context)
+private fun provideUserInteractionDispatcher(userInteractionObserver: UserInteractionObserver,context:LoggyContext): UserInteractionDispatcher {
+    val dispatcher = PeriodicCheckIdleDispatcher(context)
+    dispatcher.addObserver(userInteractionObserver)
+    return dispatcher
 }
+
+private fun provideSendingPermissionDispatcher(sendingPermissionObserver: SendingPermissionObserver,context:LoggyContext): SendingPermissionDispatcher {
+    val dispatcher = SendingPermissionDispatcherImpl(context)
+    dispatcher.addObserver(sendingPermissionObserver)
+    return dispatcher
+}
+
+
+
+
 
 
 

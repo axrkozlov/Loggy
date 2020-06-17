@@ -2,13 +2,13 @@ package com.clawmarks.loggy.filelist
 
 import android.util.Log
 import com.clawmarks.loggy.report.ReportType
-import com.clawmarks.loggy.LoggyComponent
+import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.context.LoggyContext
 import java.io.*
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
-class LoggyFileList(override val context: LoggyContext, private val reportType: ReportType) : LoggyComponent {
+class LoggyFileList(override val context: LoggyContext, private val reportType: ReportType) : LoggyContextComponent {
 
     private val updateEvent = object : Observable() {
         override fun hasChanged(): Boolean = true
