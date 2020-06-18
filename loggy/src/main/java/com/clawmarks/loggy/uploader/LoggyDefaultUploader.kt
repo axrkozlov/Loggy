@@ -4,9 +4,9 @@ import android.util.Log
 import java.io.File
 
 class LoggyDefaultUploader : LoggyUploader {
-    override fun uploadSingleFile(file: File): Boolean {
+    override fun uploadSingleFile(file: File): UploadResult {
         Log.e("DefaultUploader", "LoggyUploader interface must be implemented!")
-        return false
+        return UploadResult.UploadApiError
     }
 
     override fun cancel() {

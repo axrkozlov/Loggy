@@ -7,6 +7,7 @@ import com.clawmarks.loggy.filelist.LoggyFileList
 import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.context.LoggyContext
 import com.clawmarks.loggy.uploader.LoggyUploader
+import com.clawmarks.loggy.uploader.UploadResult
 import kotlinx.coroutines.*
 import java.io.File
 import java.lang.Exception
@@ -26,10 +27,9 @@ class LoggySender(
     private val sendingFiles = CopyOnWriteArrayList<File>()
     private var sentLogNames = CopyOnWriteArraySet<String>()
     private var sendErrorLogNames = mutableListOf<String>()
-    var sentCount = 0
+    private var sentCount = 0
 
-    var isActive = false
-        private set
+    private var isActive = false
     var isSendingInProgress = false
         private set
 
@@ -43,6 +43,9 @@ class LoggySender(
 
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     private var sendingJob: Job? = null
+
+    var hasUploaderError = false
+    var hasApiError = false
 
     init {
         loadSentNames()
@@ -88,39 +91,74 @@ class LoggySender(
     private fun sendFiles() {
         if (sendingJob != null) return
         sendingJob = coroutineScope.launch {
-            try {
-                updateSendingFileList()
-                sendErrorLogNames.clear()
-                isSendingInProgress = true
-                sentCount = 0
-                while (isActive && sendingFiles.isNotEmpty()) {
-                    sendFile(sendingFiles[0])
-                    sendingFiles.removeAt(0)
-                    delay(pauseBetweenFileSending)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                isSendingInProgress = false
+            updateSendingFileList()
+            sendErrorLogNames.clear()
+            isSendingInProgress = true
+            sentCount = 0
+            while (isActive && sendingFiles.isNotEmpty()) {
+                sendFile(sendingFiles[0])
+                sendingFiles.removeAt(0)
+                delay(pauseBetweenFileSending)
             }
+            isSendingInProgress = false
         }
         sendingJob!!.invokeOnCompletion { onCompleteSending(it) }
     }
 
+
     private fun sendFile(file: File) {
-        if (!file.exists()){
+        if (!file.exists()) {
             Log.e("LoggySender", "sendFile: $file does not exist anymore")
             return
         }
-        val name = file.nameWithoutExtension
         Log.i("LoggySender", "sendFile:${file.nameWithoutExtension}")
-        val sendingSuccess = loggyUploader.uploadSingleFile(file)
-        if (sendingSuccess) {
-            Log.i("LoggySender", "sendFile: File $name has been sent")
-            sentCount += 1
-            sentLogNames.add(name)
-        } else {
-            sendErrorLogNames.add(name)
+        val uploadResult = try {
+            loggyUploader.uploadSingleFile(file)
+        } catch (e: Exception) {
+            Log.e("LoggySender", "Uploading file uploader error", e)
+            UploadResult.UploaderError
+        }
+        processUploadResult(file, uploadResult)
+    }
+
+    private fun processUploadResult(file: File, uploadResult: UploadResult) {
+        val name = file.nameWithoutExtension
+        when (uploadResult) {
+            UploadResult.Success -> {
+                Log.i("LoggySender", "sendFile: File $name has been sent")
+                sentCount += 1
+                sentLogNames.add(name)
+                hasUploaderError = false
+                hasApiError = false
+            }
+            UploadResult.UploaderError -> {
+                if (!hasUploaderError) {
+                    Log.e("LoggySender", "Trying to resend once on uploader error")
+                    hasUploaderError = true
+                    sendFile(file)
+                } else {
+                    sendErrorLogNames.add(name)
+                    stopSending(true)
+                }
+            }
+            UploadResult.UploadApiError -> {
+                if (!hasApiError) {
+                    Log.e("LoggySender", "Trying to resend once on api error")
+                    hasApiError = true
+                    planNextSendingTask(true)
+                } else {
+                    sendErrorLogNames.add(name)
+                    stopSending(true)
+                }
+            }
+            UploadResult.CorruptedFileError -> {
+                Log.e("LoggySender", "File $name is corrupted and will be deleted")
+                try {
+                    file.delete()
+                } catch (e: Exception) {
+                    Log.e("LoggySender", "File $name is corrupted and can't be deleted")
+                }
+            }
         }
     }
 
@@ -129,12 +167,14 @@ class LoggySender(
         val resultText = when {
             sendingJob?.isCancelled == true -> "cancelled"
             throwable != null -> "completed with error : $throwable"
+            hasUploaderError -> "completed with uploader error on file: ${sendErrorLogNames.last()}"
+            hasApiError -> "completed with api error on file: ${sendErrorLogNames.last()}"
             sendErrorLogNames.isNotEmpty() -> "completed with error on files $sendErrorLogNames"
             else -> "successfully"
         }
         Log.i("LoggySender", "onCompleteSending: Sending $resultText. Sent $sentCount file(s).")
         saveSentNames()
-        planNextSendingTask(throwable != null || sendErrorLogNames.isNotEmpty())
+        if (throwable != null) planNextSendingTask(true)
         sendingJob = null
         isSendingInProgress = false
         isUrgentlySendingRequested = false
@@ -185,7 +225,7 @@ class LoggySender(
         }
     }
 
-    private fun clearSendingTask(){
+    private fun clearSendingTask() {
         handler.removeCallbacksAndMessages(sendingPeriodicRunnable)
     }
 

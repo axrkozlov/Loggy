@@ -3,6 +3,8 @@ package com.clawmarks.logtracker.api
 import android.os.Environment
 import android.util.Log
 import com.clawmarks.loggy.uploader.LoggyUploader
+import com.clawmarks.loggy.uploader.UploadResult
+import com.clawmarks.logtracker.fileioapi.FileioUploader
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -99,12 +101,13 @@ class LoggyUploaderImpl : LoggyUploader {
 }
 
 
-    override fun uploadSingleFile(file: File): Boolean {
+    override fun uploadSingleFile(file: File): UploadResult  {
         val fileBody = PRRequestBody(file)
         val filePart = MultipartBody.Part.createFormData(filekey, file.name, fileBody)
         val response = safeApiCall(uploadInterface.uploadFile(filePart))
         Log.i("LogUploader", "uploadSingleFile: $response")
-        return response is Result.Success
+        return if (response is FileioUploader.Result.Success<*>) UploadResult.Success
+        else UploadResult.UploadApiError
     }
 
     override fun cancel() {

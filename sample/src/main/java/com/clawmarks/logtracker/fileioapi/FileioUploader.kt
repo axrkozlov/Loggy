@@ -3,6 +3,7 @@ package com.clawmarks.logtracker.fileioapi
 import android.os.Environment
 import android.util.Log
 import com.clawmarks.loggy.uploader.LoggyUploader
+import com.clawmarks.loggy.uploader.UploadResult
 import com.clawmarks.logtracker.api.LoggyUploaderImpl
 import com.google.gson.JsonElement
 import kotlinx.coroutines.CoroutineScope
@@ -45,11 +46,11 @@ class FileioUploader : LoggyUploader {
     private interface UploadInterface {
         @Multipart
         @POST("/")
-        fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Call<JsonElement?>
+        fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Call<Result<FileIoResponse>?>
 
         @Multipart
         @POST("/")
-        fun uploadFile(@Part file: MultipartBody.Part?): Call<JsonElement?>
+        fun uploadFile(@Part file: MultipartBody.Part?): Call<Result<FileIoResponse>?>
     }
 
     inner class PRRequestBody(private val file: File?) : RequestBody() {
@@ -111,7 +112,7 @@ class FileioUploader : LoggyUploader {
             var byteCount = 0
             while (!deflater.finished()) {
                 byteCount = deflater.deflate(buf)
-                size +=byteCount
+                size += byteCount
                 baos.write(buf, 0, byteCount)
                 fOut.write(buf, 0, byteCount)
             }
@@ -122,7 +123,7 @@ class FileioUploader : LoggyUploader {
             //printf "\x1f\x8b\x08\x00\x00\x00\x00\x00" |cat - ./Downloads/compressed.zlib |gzip -dc > ./Downloads/unzlib.log
             size = baos.size().toLong()
             val crc32 = CRC32()
-             val ba = baos.toByteArray()
+            val ba = baos.toByteArray()
             crc32.update(ba)
 
             Log.i("FileioUploader", "baos size = $size")
@@ -133,30 +134,24 @@ class FileioUploader : LoggyUploader {
 
 
     var call: Call<JsonElement>? = null
-    override fun uploadSingleFile(file: File): Boolean {
+    override fun uploadSingleFile(file: File): UploadResult {
         val fileBody = PRRequestBody(file)
         val filePart = MultipartBody.Part.createFormData(filekey, file.name, fileBody)
 
         Log.i("LogUploader", "uploadSingleFile: $uploadURL, $auth_token")
-        try {
-            val response = if (auth_token.isEmpty()) {
-                safeApiCall(
-                        uploadInterface.uploadFile(filePart)
-                )
-            } else {
-                safeApiCall(
-                        uploadInterface.uploadFile(filePart, auth_token)
-                )
-            }
-
-//            val response = call!!.execute()
-            Log.i("LogUploader", "uploadSingleFile: $response")
-
-            return response is Result.Success<*>
-        } catch (e: Exception) {
-            e.printStackTrace()
+        val response = if (auth_token.isEmpty()) {
+            safeApiCall(
+                    uploadInterface.uploadFile(filePart)
+            )
+        } else {
+            safeApiCall(
+                    uploadInterface.uploadFile(filePart, auth_token)
+            )
         }
-        return false
+
+        Log.i("LogUploader", "uploadSingleFile: $response")
+        return if (response is Result.Success<*>) UploadResult.Success
+        else UploadResult.UploadApiError
     }
 
 
@@ -169,7 +164,7 @@ class FileioUploader : LoggyUploader {
         uploadInterface = FileioClient.client.create(UploadInterface::class.java)
     }
 
-    fun <T : Any> safeApiCall(call: Call<T?>): LoggyUploaderImpl.Result<T?> {
+    private fun <T : Any> safeApiCall(call: Call<T?>): LoggyUploaderImpl.Result<T?> {
         try {
             currentCall = call
             val response = call.execute()

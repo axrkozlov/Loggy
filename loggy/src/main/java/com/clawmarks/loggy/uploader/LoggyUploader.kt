@@ -4,8 +4,8 @@ import com.clawmarks.loggy.LoggyComponent
 import java.io.File
 
 /** interface LoggyUploader must be implemented as synchronous function, file must be sent one by one
-*/
-interface LoggyUploader:LoggyComponent {
+ */
+interface LoggyUploader : LoggyComponent {
 
     /**
      * Mime file type for an api
@@ -17,7 +17,7 @@ interface LoggyUploader:LoggyComponent {
      * Uploading files one by one, sending precess uses coroutine Dispatchers.IO synchronously
      * therefore method must be implemented without background workers
      */
-    fun uploadSingleFile(file: File):Boolean
+    fun uploadSingleFile(file: File): UploadResult
 
     /**
      * Uploading files can be cancelled when needed
