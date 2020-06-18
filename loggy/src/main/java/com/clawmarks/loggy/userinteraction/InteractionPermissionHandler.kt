@@ -13,15 +13,14 @@ class InteractionPermissionHandler(override val context: LoggyContext) :UserInte
 
     override fun onInteraction() {
         Log.i("InteractionPermission", "onInteraction")
-        stopSending()
         isIdle = false
-
+        stopSending()
     }
 
     override fun onIdle() {
         Log.i("InteractionPermission", "onIdle")
-        startSending()
         isIdle = true
+        startSending()
     }
 
     override fun onPermitted() {

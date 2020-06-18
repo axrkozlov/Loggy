@@ -114,6 +114,17 @@ interface LoggyPrefs : LoggyComponent {
      */
     val reportVersion: Int
 
+    /**
+     * Override to disable zlib compression
+     */
+    val isCompressionEnabled: Boolean
+        get() = true
+
+    /**
+     * Show analytics messages in logcat
+     */
     val isDebugMode
         get() = false
+
+
 }

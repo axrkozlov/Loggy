@@ -47,7 +47,7 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
             try {
                 list.clear()
                 dir.listFiles()
-                        ?.filter { it.name.endsWith(".log") }
+                        ?.filter { it.name.endsWith(context.fileExtension) }
                         ?.sortedBy { it.lastModified() }
                         ?.let { list.addAll(it) }
                 if (!oldList.containsAll(list)) updateEvent.notifyObservers()

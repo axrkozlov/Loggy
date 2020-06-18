@@ -25,4 +25,8 @@ interface LoggyContext:LoggyComponent {
 
     fun register(component: LoggyContextComponent)
 
+    val fileExtension :String
+    get() = if (prefs.isCompressionEnabled) "zlib"
+    else "log"
+
 }

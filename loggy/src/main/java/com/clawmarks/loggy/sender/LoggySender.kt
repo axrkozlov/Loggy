@@ -29,7 +29,7 @@ class LoggySender(
     private var sendErrorLogNames = mutableListOf<String>()
     private var sentCount = 0
 
-    private var isActive = false
+    private var isSendingActive = false
     var isSendingInProgress = false
         private set
 
@@ -71,7 +71,7 @@ class LoggySender(
             Log.i("LoggySender", "startSending: urgently")
         }
         Log.i("LoggySender", "startSending:")
-        isActive = true
+        isSendingActive = true
         sendFiles()
     }
 
@@ -83,7 +83,7 @@ class LoggySender(
             return
         }
         Log.i("LoggySender", "stopSending: ")
-        isActive = false
+        isSendingActive = false
         loggyUploader.cancel()
         sendingJob?.cancel()
     }
@@ -95,8 +95,9 @@ class LoggySender(
             sendErrorLogNames.clear()
             isSendingInProgress = true
             sentCount = 0
-            while (isActive && sendingFiles.isNotEmpty()) {
-                sendFile(sendingFiles[0])
+            while (isSendingActive && sendingFiles.isNotEmpty()) {
+                val canProceed = sendFile(sendingFiles[0])
+                if (!canProceed) break
                 sendingFiles.removeAt(0)
                 delay(pauseBetweenFileSending)
             }
@@ -106,10 +107,10 @@ class LoggySender(
     }
 
 
-    private fun sendFile(file: File) {
+    private fun sendFile(file: File): Boolean {
         if (!file.exists()) {
             Log.e("LoggySender", "sendFile: $file does not exist anymore")
-            return
+            return true
         }
         Log.i("LoggySender", "sendFile:${file.nameWithoutExtension}")
         val uploadResult = try {
@@ -118,57 +119,59 @@ class LoggySender(
             Log.e("LoggySender", "Uploading file uploader error", e)
             UploadResult.UploaderError
         }
-        processUploadResult(file, uploadResult)
+        return processUploadResult(file, uploadResult)
     }
 
-    private fun processUploadResult(file: File, uploadResult: UploadResult) {
+    private fun processUploadResult(file: File, uploadResult: UploadResult): Boolean {
         val name = file.nameWithoutExtension
+        Log.i("LoggySender", "processUploadResult: File = $name, uploadResult = $uploadResult")
         when (uploadResult) {
             UploadResult.Success -> {
-                Log.i("LoggySender", "sendFile: File $name has been sent")
+                Log.i("LoggySender", "processUploadResult: File $name has been sent")
                 sentCount += 1
                 sentLogNames.add(name)
                 hasUploaderError = false
                 hasApiError = false
+                return true
             }
             UploadResult.UploaderError -> {
                 if (!hasUploaderError) {
-                    Log.e("LoggySender", "Trying to resend once on uploader error")
+                    Log.e("LoggySender", "processUploadResult: Trying to resend once on uploader error")
                     hasUploaderError = true
                     sendFile(file)
                 } else {
                     sendErrorLogNames.add(name)
-                    stopSending(true)
                 }
             }
             UploadResult.UploadApiError -> {
                 if (!hasApiError) {
-                    Log.e("LoggySender", "Trying to resend once on api error")
+                    Log.e("LoggySender", "processUploadResult: Plan resend on api error")
                     hasApiError = true
                     planNextSendingTask(true)
+                    sendErrorLogNames.add(name)
                 } else {
                     sendErrorLogNames.add(name)
-                    stopSending(true)
                 }
             }
             UploadResult.CorruptedFileError -> {
-                Log.e("LoggySender", "File $name is corrupted and will be deleted")
+                Log.e("LoggySender", "processUploadResult: File $name is corrupted and will be deleted")
                 try {
                     file.delete()
                 } catch (e: Exception) {
-                    Log.e("LoggySender", "File $name is corrupted and can't be deleted")
+                    Log.e("LoggySender", "processUploadResult: File $name is corrupted and can't be deleted")
                 }
             }
         }
+        return false
     }
 
     private fun onCompleteSending(throwable: Throwable?) {
-
+        val lastErrorFileName = if (sendErrorLogNames.isNotEmpty()) sendErrorLogNames.last() else ""
         val resultText = when {
             sendingJob?.isCancelled == true -> "cancelled"
             throwable != null -> "completed with error : $throwable"
-            hasUploaderError -> "completed with uploader error on file: ${sendErrorLogNames.last()}"
-            hasApiError -> "completed with api error on file: ${sendErrorLogNames.last()}"
+            hasUploaderError -> "completed with uploader error on file: $lastErrorFileName"
+            hasApiError -> "completed with api error on file: $lastErrorFileName"
             sendErrorLogNames.isNotEmpty() -> "completed with error on files $sendErrorLogNames"
             else -> "successfully"
         }
@@ -194,7 +197,7 @@ class LoggySender(
             sendingInterval = 0
             pauseBetweenFileSending = 0
         }
-        if (context.isSendingUrgent) isActive = true
+        if (context.isSendingUrgent) isSendingActive = true
         sendingInterval = prefs.sendingIntervalMin * 60 * 1000
         if (sendingInterval <= 0) sendingRetryInterval = prefs.sendingRetryIntervalMin * 60 * 1000
         pauseBetweenFileSending = prefs.pauseBetweenFileSendingSec * 1000
@@ -205,7 +208,7 @@ class LoggySender(
     private val handler = Handler(Looper.getMainLooper())
     private val sendingPeriodicRunnable: Runnable = Runnable {
         updateSendingFileList()
-        if (isSendingInProgress || !isActive) return@Runnable
+        if (isSendingInProgress || !isSendingActive) return@Runnable
         Log.i("LoggySender", "Start sending after interval is elapsed")
         sendFiles()
     }
@@ -233,7 +236,7 @@ class LoggySender(
         Observer { _, _ ->
             clearSendingTask()
             updateSendingFileList()
-            if (isSendingInProgress || !isActive) return@Observer
+            if (isSendingInProgress || !isSendingActive) return@Observer
             Log.i("LoggySender", "Start sending when a file list updated")
             sendFiles()
         }

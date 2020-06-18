@@ -7,18 +7,26 @@ import com.clawmarks.loggy.context.LoggyContext
 
 class SendingPermissionDispatcherImpl(override val context: LoggyContext) :SendingPermissionDispatcher(),LoggyContextComponent {
 
-    var timeIsPermitted = 0L
+    private var timeIsPermitted = 0L
     private val observers = mutableSetOf<SendingPermissionObserver>()
     private val handler = Handler(Looper.getMainLooper())
-
+    private val permissionTimeElapsedRunnable = Runnable {onProhibited()}
     override fun onPermitted() {
         dispatchPermitted()
-        if (timeIsPermitted>0) handler.postDelayed({onProhibited()},timeIsPermitted)
+        planNewPermissionTimeWatcher()
      }
 
     override fun onProhibited() {
         dispatchProhibited()
     }
+
+    private fun planNewPermissionTimeWatcher(){
+        if (timeIsPermitted>0) {
+            handler.removeCallbacksAndMessages(permissionTimeElapsedRunnable)
+            handler.postDelayed(permissionTimeElapsedRunnable,timeIsPermitted)
+        }
+    }
+
 
     override fun addObserver(sendingPermissionObserver: SendingPermissionObserver) {
          observers.add(sendingPermissionObserver)

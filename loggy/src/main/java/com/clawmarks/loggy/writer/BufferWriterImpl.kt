@@ -24,7 +24,9 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
 
     private val path: String = if (reportType == ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
     private val dir = File(path)
+    //TODO:remove.txt
     private val tempFileName = ".temp.txt"
+    private val tempCompressFileName = ".tempzlib.txt"
 
     private var reportVersion: Int = 0
     private var deviceId: String = ""
@@ -41,6 +43,12 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
 
     private val hasEnoughMemory: Boolean
         get() = context.hasEnoughMemory
+
+    private var endTime: String = ""
+
+    private var tempFile: File = File(path, tempFileName)
+    private var fOut: FileOutputStream? = null
+    private var osw: OutputStreamWriter? = null
 
     init {
         register()
@@ -121,13 +129,6 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         }
     }
 
-    private var endTime: String = ""
-
-    private var tempFile: File = File(path, tempFileName)
-    private var fOut: FileOutputStream? = null
-    private var osw: OutputStreamWriter? = null
-
-
     private fun createTempFileIfNotExist(): Boolean {
         var isFileJustCreated = false
         if (!tempFile.exists()) {
@@ -181,18 +182,32 @@ class BufferWriterImpl(override val context: LoggyContext, private val reportTyp
         osw!!.write("\"reportInfo\":${reportInfo.toJson()}")
         osw!!.write("}\n")
         closeFile()
-        nameFile(String.format("%1$2s_%2$2s_%3$2s.log", deviceId, endTime, reportType))
+        val name = String.format("%1$2s_%2$2s_%3$2s.${context.fileExtension}", deviceId, endTime, reportType)
+        if (prefs.isCompressionEnabled) {
+            compressFile(tempFile,name)
+        } else {
+            nameFile(tempFile, name)
+        }
     }
-//
-//    private fun compressFile(){
-//        val compressor = Deflater()
-//        val dos = DeflaterOutputStream(baos)
-//        dos.write(inputStr.getBytes())
-//    }
 
-    private fun nameFile(name:  String) {
+    private fun compressFile(finalTempFile: File, name: String){
+        val fileMusBeCompressed = File(path, tempCompressFileName)
+        finalTempFile.renameTo(fileMusBeCompressed)
+        val compressedFile = File(path, name)
+        val compresser = Deflater(Deflater.DEFAULT_COMPRESSION)
+        val fOut = DeflaterOutputStream(FileOutputStream(compressedFile),compresser)
+        val bytes = fileMusBeCompressed.readBytes()
+        fOut.write(bytes,0,bytes.size)
+        fOut.finish()
+        fOut.close()
+        compresser.end()
+        fileMusBeCompressed.delete()
+    }
+
+    private fun nameFile(finalTempFile: File, name: String):File {
         val file = File(path, name)
-        tempFile.renameTo(file)
+        finalTempFile.renameTo(file)
+        return file
     }
 
     override fun onPrefsUpdated() {

@@ -60,5 +60,6 @@ class LoggyPrefsImpl : LoggyPrefs {
 
     override val reportVersion: Int
         get() = 1
-
+    override val isCompressionEnabled: Boolean
+        get() = true
 }

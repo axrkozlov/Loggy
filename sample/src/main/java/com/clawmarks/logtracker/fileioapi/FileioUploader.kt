@@ -18,10 +18,7 @@ import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.*
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 
@@ -46,90 +43,86 @@ class FileioUploader : LoggyUploader {
     private interface UploadInterface {
         @Multipart
         @POST("/")
-        fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Call<Result<FileIoResponse>?>
+        fun uploadFile(@Part file: MultipartBody.Part?, @Header("Authorization") authorization: String?): Call<FileIoResponse?>
 
         @Multipart
         @POST("/")
-        fun uploadFile(@Part file: MultipartBody.Part?): Call<Result<FileIoResponse>?>
+        fun uploadFile(@Part file: MultipartBody.Part?): Call<FileIoResponse?>
     }
 
-    inner class PRRequestBody(private val file: File?) : RequestBody() {
+    inner class PRRequestBody(private val file: File) : RequestBody() {
 
-        private var compressed: ByteArray
+//        private var compressed: ByteArray
         private var size: Long = 0
 
         init {
-            compressed = compress(file)
+//            compressed = compress(file)
         }
 
         override fun contentType(): MediaType? {
             // i want to upload only images
-            return MediaType.parse(mimeFileType)
+            return MediaType.parse(mimeZlibFileType)
         }
 
         @Throws(IOException::class)
         override fun contentLength(): Long {
-            return size
+            return file.length()
         }
-//
-//        @Throws(IOException::class)
-//        override fun writeTo(sink: BufferedSink) {
-//            val fileLength = mFile!!.length()
-//            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-//            val `in` = FileInputStream(mFile)
-//            var uploaded: Long = 0
-//            try {
-//                var read: Int
-//                val handler = Handler(Looper.getMainLooper())
-//                while (`in`.read(buffer).also { read = it } != -1) {
-//
-//                    // update progress on UI thread
-////                    handler.post(ProgressUpdater(uploaded, fileLength))
-//                    uploaded += read.toLong()
-//                    sink.write(buffer, 0, read)
-//                }
-//            } finally {
-//                `in`.close()
-//            }
-//        }
-
 
         @Throws(IOException::class)
         override fun writeTo(sink: BufferedSink) {
-            sink.write(compressed)
-        }
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            val `in` = FileInputStream(file)
+            var uploaded: Long = 0
+            try {
+                var read: Int
+                while (`in`.read(buffer).also { read = it } != -1) {
 
-        private fun compress(file: File?): ByteArray {
-
-            if (file == null) return ByteArray(0)
-            val deflater = Deflater()
-            deflater.setInput(file.readBytes())
-            deflater.finish()
-            val baos = ByteArrayOutputStream()
-            val sdfile = File("${Environment.getExternalStorageDirectory().absolutePath}/loggy", "compressed.zlib")
-            val fOut = FileOutputStream(sdfile)
-            val buf = ByteArray(8192)
-            var byteCount = 0
-            while (!deflater.finished()) {
-                byteCount = deflater.deflate(buf)
-                size += byteCount
-                baos.write(buf, 0, byteCount)
-                fOut.write(buf, 0, byteCount)
+                    uploaded += read.toLong()
+                    sink.write(buffer, 0, read)
+                }
+            } finally {
+                `in`.close()
             }
-            deflater.end()
-
-            Log.i("FileioUploader", "counting size = $size")
-            //decompress command
-            //printf "\x1f\x8b\x08\x00\x00\x00\x00\x00" |cat - ./Downloads/compressed.zlib |gzip -dc > ./Downloads/unzlib.log
-            size = baos.size().toLong()
-            val crc32 = CRC32()
-            val ba = baos.toByteArray()
-            crc32.update(ba)
-
-            Log.i("FileioUploader", "baos size = $size")
-            Log.i("FileioUploader", "compressed.zlib size = ${sdfile.length()}")
-            return ba
         }
+
+
+//        @Throws(IOException::class)
+//        override fun writeTo(sink: BufferedSink) {
+//            sink.write(compressed)
+//        }
+
+//        private fun compress(file: File?): ByteArray {
+//
+//            if (file == null) return ByteArray(0)
+//            val deflater = Deflater()
+//            deflater.setInput(file.readBytes())
+//            deflater.finish()
+//            val baos = ByteArrayOutputStream()
+//            val sdfile = File("${Environment.getExternalStorageDirectory().absolutePath}/loggy", "compressed.zlib")
+//            val fOut = FileOutputStream(sdfile)
+//            val buf = ByteArray(8192)
+//            var byteCount = 0
+//            while (!deflater.finished()) {
+//                byteCount = deflater.deflate(buf)
+//                size += byteCount
+//                baos.write(buf, 0, byteCount)
+//                fOut.write(buf, 0, byteCount)
+//            }
+//            deflater.end()
+//
+//            Log.i("FileioUploader", "counting size = $size")
+//            //decompress command
+//            //printf "\x1f\x8b\x08\x00\x00\x00\x00\x00" |cat - ./Downloads/compressed.zlib |gzip -dc > ./Downloads/unzlib.log
+//            size = baos.size().toLong()
+//            val crc32 = CRC32()
+//            val ba = baos.toByteArray()
+//            crc32.update(ba)
+//
+//            Log.i("FileioUploader", "baos size = $size")
+//            Log.i("FileioUploader", "compressed.zlib size = ${sdfile.length()}")
+//            return ba
+//        }
     }
 
 
@@ -150,7 +143,7 @@ class FileioUploader : LoggyUploader {
         }
 
         Log.i("LogUploader", "uploadSingleFile: $response")
-        return if (response is Result.Success<*>) UploadResult.Success
+        return if (response is Result.Success) UploadResult.Success
         else UploadResult.UploadApiError
     }
 
@@ -164,16 +157,16 @@ class FileioUploader : LoggyUploader {
         uploadInterface = FileioClient.client.create(UploadInterface::class.java)
     }
 
-    private fun <T : Any> safeApiCall(call: Call<T?>): LoggyUploaderImpl.Result<T?> {
+    private fun <T : Any> safeApiCall(call: Call<T?>): Result<T?> {
         try {
             currentCall = call
             val response = call.execute()
             if (response.isSuccessful)
-                return LoggyUploaderImpl.Result.Success(response.body())
-            return LoggyUploaderImpl.Result.Error(IOException("Error Occurred during getting safe Api result"))
+                return Result.Success(response.body())
+            return Result.Error(IOException("Error Occurred during getting safe Api result"))
         } catch (e: Exception) {
             Log.i("LoggyUploaderImpl", "safeApiCall: $e")
-            return LoggyUploaderImpl.Result.Error(e)
+            return Result.Error(e)
         } finally {
             currentCall = null
         }
