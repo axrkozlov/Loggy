@@ -1,8 +1,8 @@
 package com.clawmarks.loggy.buffer
 
 import android.util.Log
-import com.clawmarks.loggy.writer.BufferWriter
 import com.clawmarks.loggy.message.Message
+import com.clawmarks.loggy.writer.BufferWriter
 
 abstract class Buffer {
     abstract val bufferWriter: BufferWriter

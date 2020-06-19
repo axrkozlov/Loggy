@@ -3,9 +3,10 @@ package com.clawmarks.loggy.sender
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.clawmarks.loggy.filelist.LoggyFileList
 import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.context.LoggyContext
+import com.clawmarks.loggy.filelist.AnalyticsFileList
+import com.clawmarks.loggy.filelist.LogcatFileList
 import com.clawmarks.loggy.uploader.LoggyUploader
 import com.clawmarks.loggy.uploader.UploadResult
 import kotlinx.coroutines.*
@@ -20,8 +21,8 @@ import java.util.concurrent.CopyOnWriteArraySet
 class LoggySender(
         override val context: LoggyContext,
         private val sentNamesHolder: SentNamesHolder,
-        private val analyticsFileList: LoggyFileList,
-        private val logcatFileList: LoggyFileList,
+        private val analyticsFileList: AnalyticsFileList,
+        private val logcatFileList: LogcatFileList,
         var loggyUploader: LoggyUploader) : LoggyContextComponent {
 
     private val sendingFiles = CopyOnWriteArrayList<File>()
@@ -30,8 +31,7 @@ class LoggySender(
     private var sentCount = 0
 
     private var isSendingActive = false
-    var isSendingInProgress = false
-        private set
+    private var isSendingInProgress = false
 
     private var sendingInterval: Long = 0
     private var sendingRetryInterval: Long = 0
@@ -44,8 +44,8 @@ class LoggySender(
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     private var sendingJob: Job? = null
 
-    var hasUploaderError = false
-    var hasApiError = false
+    private var hasUploaderError = false
+    private var hasApiError = false
 
     init {
         loadSentNames()

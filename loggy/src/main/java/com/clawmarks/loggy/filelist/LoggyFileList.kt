@@ -8,7 +8,11 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
-class LoggyFileList(override val context: LoggyContext, private val reportType: ReportType) : LoggyContextComponent {
+abstract class LoggyFileList(override val context: LoggyContext) : LoggyContextComponent {
+
+    abstract val reportType: ReportType
+    abstract val path: String
+    private val dir: File by lazy { File(path) }
 
     private val updateEvent = object : Observable() {
         override fun hasChanged(): Boolean = true
@@ -17,19 +21,10 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
     private val isOverflown: Boolean
         get() {
             val value = size > maxSizeBytes
-            if (value) Log.e("LoggyFileList", "${dir.canonicalPath} is overflown!")
+            if (value) Log.e(componentName, "${dir.canonicalPath} is overflown!")
             return value
         }
 
-    override val componentName: String
-        get() = super.componentName + reportType
-
-    init {
-        register()
-    }
-
-    private var path: String = if (reportType == ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
-    private var dir = File(path)
     private var limitSizeBytes: Int = 1_048_576
     private var maxSizeBytes: Int = 4_194_304
 
@@ -44,21 +39,21 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
     fun updateFileList() {
         if (isUpdating) return
         isUpdating = true
-            try {
-                list.clear()
-                dir.listFiles()
-                        ?.filter { it.name.endsWith(context.fileExtension) }
-                        ?.sortedBy { it.lastModified() }
-                        ?.let { list.addAll(it) }
-                if (!oldList.containsAll(list)) updateEvent.notifyObservers()
-                oldList.clear()
-                oldList.addAll(list)
-                measure()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                isUpdating = false
-            }
+        try {
+            list.clear()
+            dir.listFiles()
+                    ?.filter { it.name.endsWith(context.fileExtension) }
+                    ?.sortedBy { it.lastModified() }
+                    ?.let { list.addAll(it) }
+            if (!oldList.containsAll(list)) updateEvent.notifyObservers()
+            oldList.clear()
+            oldList.addAll(list)
+            measure()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            isUpdating = false
+        }
     }
 
     private fun deleteFileFromDir(file: File) {
@@ -88,8 +83,6 @@ class LoggyFileList(override val context: LoggyContext, private val reportType: 
     override fun onPrefsUpdated() {
         limitSizeBytes = prefs.dirSizeBytes
         maxSizeBytes = prefs.maxDirSizeBytes
-        path = if (reportType == ReportType.ANALYTIC) prefs.analyticsPath else prefs.logcatPath
-        dir = File(path)
         updateFileList()
     }
 

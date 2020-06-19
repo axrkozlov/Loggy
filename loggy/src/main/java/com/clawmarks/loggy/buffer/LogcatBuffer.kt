@@ -1,11 +1,11 @@
 package com.clawmarks.loggy.buffer
 
 
-import com.clawmarks.loggy.writer.BufferWriter
 import com.clawmarks.loggy.message.LogcatMessage
 import com.clawmarks.loggy.message.Message
 import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.context.LoggyContext
+import com.clawmarks.loggy.writer.LogcatBufferWriter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.max
 import kotlin.math.min
 
-class LogcatBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : LoggyContextComponent, Buffer() {
+class LogcatBuffer(override val context: LoggyContext, override val bufferWriter: LogcatBufferWriter) : LoggyContextComponent, Buffer() {
 
 
     private val localBuffer = ConcurrentLinkedQueue<Message>()

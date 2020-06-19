@@ -1,13 +1,13 @@
 package com.clawmarks.loggy.buffer
 
 import android.util.Log
-import com.clawmarks.loggy.writer.BufferWriter
 import com.clawmarks.loggy.message.Message
 import com.clawmarks.loggy.LoggyContextComponent
 import com.clawmarks.loggy.context.LoggyContext
+import com.clawmarks.loggy.writer.AnalyticsBufferWriter
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class AnalyticsBuffer(override val context: LoggyContext, override val bufferWriter: BufferWriter) : Buffer(), LoggyContextComponent {
+class AnalyticsBuffer(override val context: LoggyContext, override val bufferWriter: AnalyticsBufferWriter) : Buffer(), LoggyContextComponent {
     init {
         register()
     }
