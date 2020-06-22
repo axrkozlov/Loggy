@@ -5,7 +5,7 @@ import com.clawmarks.loggy.Loggy
 import com.clawmarks.loggy.di.appyModule
 import com.clawmarks.loggy.prefs.LoggyPrefs
 import com.clawmarks.loggy.uploader.LoggyUploader
-import com.clawmarks.logtracker.utils.trace
+import com.clawmarks.loggy.utils.loggy
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -29,7 +29,7 @@ class App : Application() {
                 loggyPrefs
         )
 
-        trace(tag, "onCreate")
+        loggy(tag, "onCreate")
 
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->

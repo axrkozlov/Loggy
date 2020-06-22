@@ -8,6 +8,11 @@ fun loggy(tag: String, message: String = ""){
     Loggy.i(tag,message)
 }
 
+
+fun loggyd(tag: String, message: String = ""){
+    Loggy.d(tag,message)
+}
+
 fun loggyw(tag: String, message: String = ""){
     Loggy.w(tag,message)
 }

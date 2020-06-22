@@ -75,6 +75,9 @@ class Loggy internal constructor(): LoggyKoinComponent {
             instance.log(tag, message, MessageLevel.INFO)
         }
 
+        fun d(tag: String, message: String) {
+            instance.log(tag, message, MessageLevel.DEBUG)
+        }
         fun w(tag: String, message: String) {
             instance.log(tag, message, MessageLevel.WARNING)
         }
