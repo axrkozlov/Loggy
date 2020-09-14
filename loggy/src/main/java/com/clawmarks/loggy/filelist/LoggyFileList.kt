@@ -32,8 +32,6 @@ abstract class LoggyFileList(override val context: LoggyContext) : LoggyContextC
     private val oldList = ArrayList<File>()
 
     var size: Long = 0
-    val sizeInMb: Long
-        get() = size / 1024 / 1024
 
     var isUpdating = false
     fun updateFileList() {
