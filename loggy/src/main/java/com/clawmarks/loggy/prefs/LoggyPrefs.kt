@@ -75,7 +75,7 @@ interface LoggyPrefs : LoggyComponent {
     is 8kb (every 8 kb file flushes to disk)
      */
     val fileSizeKb: Int
-    val maxFileSizeBytes: Int
+    val fileSizeBytes: Int
         get() = fileSizeKb * 1024
 
     /**

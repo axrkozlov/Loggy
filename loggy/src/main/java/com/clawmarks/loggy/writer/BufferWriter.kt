@@ -156,7 +156,7 @@ abstract class BufferWriter(override val context: LoggyContext, private val logg
     }
 
     private fun checkTempFile() {
-        if (tempFile.length() > prefs.maxFileSizeBytes) {
+        if (tempFile.length() > prefs.fileSizeBytes) {
             finalizeFile()
         }
         if (osw == null) openFile()

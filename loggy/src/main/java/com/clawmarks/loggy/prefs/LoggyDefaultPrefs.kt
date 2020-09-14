@@ -29,12 +29,7 @@ class LoggyDefaultPrefs : LoggyPrefs {
         get() = 200
 
     override val logcatBufferSizeKb: Int
-        get() {
-            val value = 1000
-            var size = max(value, 100)
-            size = min(size, 8192)
-            return size
-        }
+        get()  = 1000
 
     override val fileSizeKb: Int
         get() = 64
